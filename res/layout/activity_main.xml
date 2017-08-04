@@ -3,26 +3,45 @@
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.split_keyboard.MainActivity" >
 
     <ImageView
-        android:id="@+id/leftkeys"
+        android:id="@+id/leftkeys_eyesfree"
         android:layout_width="647px"
         android:layout_height="382px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:src="@drawable/keys_left" />
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:src="@drawable/keys_left_eyesfree" />
 
     <ImageView
-        android:id="@+id/rightkeys"
+        android:id="@+id/rightkeys_eyesfree"
         android:layout_width="647px"
         android:layout_height="382px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:src="@drawable/keys_right" />
-
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:src="@drawable/keys_right_eyesfree" />
+    
+    <ImageView
+        android:id="@+id/leftkeys_eyesfocus"
+        android:visibility="invisible"
+        android:layout_width="647px"
+        android:layout_height="666px"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/keys_left_eyesfocus" />
+    
+    <ImageView
+        android:id="@+id/rightkeys_eyesfocus"
+        android:visibility="invisible"
+        android:layout_width="647px"
+        android:layout_height="630px"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/keys_right_eyesfocus" />
+    
     <Button
         android:id="@+id/startbutton"
         android:layout_width="wrap_content"
@@ -37,7 +56,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/startbutton"
-        android:layout_marginLeft="29dp"
+        android:layout_marginLeft="15dp"
         android:layout_toRightOf="@+id/startbutton"
         android:text="stop" />
 
@@ -47,7 +66,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/stopbutton"
         android:layout_alignBottom="@+id/stopbutton"
-        android:layout_marginLeft="28dp"
+        android:layout_marginLeft="15dp"
         android:layout_toRightOf="@+id/stopbutton"
         android:text="UNSTARTED" />
 
@@ -79,7 +98,7 @@
         android:layout_width="fill_parent"
         android:layout_height="150dp"
         android:layout_alignTop="@+id/stopbutton"
-        android:layout_toRightOf="@+id/leftkeys"
+        android:layout_toRightOf="@+id/leftkeys_eyesfree"
         android:text="text"
         android:textSize="25dp"
         android:typeface="monospace" />
@@ -94,5 +113,36 @@
         android:text="candidate"
         android:textSize="15dp"
         android:typeface="monospace" />
+
+    <TextView
+        android:id="@+id/candidateL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/leftkeys_eyesfree"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="70dp"
+        android:text="candidateL"
+        android:textSize="15dp"
+        android:typeface="monospace" />
+    
+    <TextView
+        android:id="@+id/candidateR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/candidateL"
+        android:layout_alignBottom="@+id/candidateL"
+        android:layout_alignParentRight="true"
+        android:text="candidateR"
+        android:textSize="15dp"
+        android:typeface="monospace" />
+
+    <CheckBox
+        android:id="@+id/oov"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/candidate"
+        android:layout_alignLeft="@+id/technique"
+        android:layout_marginBottom="11dp"
+        android:text="OOV" />
 
 </RelativeLayout>
