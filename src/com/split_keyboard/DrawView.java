@@ -39,10 +39,18 @@ class DrawView extends View {
 	final int BIAS = 194; */
 	
 	/** eyes-focus **/
-	final int Y0 = 1140;
+	/*final int Y0 = 1140;
 	final int[] LX = new int[] {133, 175, 235};
 	final int[] RX = new int[] {1453, 1495, 1555};
 	final int Y = 130;
+	final int X = 104;
+	final int BIAS = 194;*/
+	
+	/** addition **/
+	final int Y0 = 1067;
+	final int[] LX = new int[] {93, 93, 93, 93, 93};
+	final int[] RX = new int[] {1530, 1530, 1530, 1530, 1530};
+	final int Y = 115;
 	final int X = 104;
 	final int BIAS = 194;
 	
@@ -50,7 +58,7 @@ class DrawView extends View {
 		Paint p = new Paint();
 		p.setColor(Color.RED);
 		p.setStrokeWidth(2.0f);
-		for (int y = 0; y < 3; y++) {
+		for (int y = 0; y < LX.length; y++) {
 			for (int x = 0; x < 5; x++) {
 				canvas.drawCircle(LX[y] + x * X, Y0 + y * Y - BIAS, 2, p);
 			}

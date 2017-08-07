@@ -42,6 +42,24 @@
         android:layout_alignParentRight="true"
         android:src="@drawable/keys_right_eyesfocus" />
     
+    <ImageView
+        android:id="@+id/addition_keyboard_left"
+        android:visibility="invisible"
+        android:layout_width="586px"
+        android:layout_height="600px"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/addition_keyboard_left" />
+    
+    <ImageView
+        android:id="@+id/addition_keyboard_right"
+        android:visibility="invisible"
+        android:layout_width="586px"
+        android:layout_height="600px"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/addition_keyboard_right" />
+    
     <Button
         android:id="@+id/startbutton"
         android:layout_width="wrap_content"
@@ -144,5 +162,6 @@
         android:layout_alignLeft="@+id/technique"
         android:layout_marginBottom="11dp"
         android:text="OOV" />
+
 
 </RelativeLayout>
