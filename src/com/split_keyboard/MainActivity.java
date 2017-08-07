@@ -185,7 +185,7 @@ public class MainActivity extends Activity {
 		for (int i = 0; i < show.size(); i++) {
 			if (i > 0 && isLetter(show.get(i - 1)) && isLetter(show.get(i))) text += " ";
 			String s = show.get(i);
-			if (s == "") continue;
+			if (s.isEmpty()) continue;
 			switch (s.charAt(0)) {
 			case '<':
 				s = "&lt;";
@@ -259,8 +259,8 @@ public class MainActivity extends Activity {
 
 	void renewCandidateLR() {
 		if (eyes_free) {
-			candidateViewL.setText(wysiwyg);
-			candidateViewR.setText(wysiwyg);
+			candidateViewL.setText(Html.fromHtml("<font color='#e7e8e9'>" + wysiwyg + "</font>"));
+			candidateViewR.setText(Html.fromHtml("<font color='#e7e8e9'>" + wysiwyg + "</font>"));
 		}
 	}
 	
@@ -503,8 +503,10 @@ public class MainActivity extends Activity {
 	
 	
 	
+	final int DICT = R.raw.dict;
 	final int MAX_WORD_LENGTH = 99;
-	final int DICT_SIZE = 10000;
+	final int DICT_SIZE = (DICT == R.raw.dict) ? 10000 : 50000;
+	final int OOV_SIZE = 1000;
 	ArrayList<String> sentences = new ArrayList<String>();
 	ArrayList<Word>[] dict = new ArrayList[MAX_WORD_LENGTH];
 	ArrayList<Word> dict_oov = new ArrayList<Word>();
@@ -526,7 +528,7 @@ public class MainActivity extends Activity {
 		for (int i = 0; i < MAX_WORD_LENGTH; i++) {
 			dict[i] = new ArrayList<Word>();
 		}
-		reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.dict)));
+		reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(DICT)));
 		try {
 			int lineNo = 0;
 			while ((line = reader.readLine()) != null) {
@@ -537,8 +539,10 @@ public class MainActivity extends Activity {
 				if (str.length() >= MAX_WORD_LENGTH) continue;
 				if (lineNo <= DICT_SIZE) {
 					dict[str.length()].add(new Word(str, freq));
-				} else {
+				} else if (lineNo <= DICT_SIZE + OOV_SIZE) {
 					dict_oov.add(new Word(str, freq));
+				} else {
+					break;
 				}
 			}
 			reader.close();

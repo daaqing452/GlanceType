@@ -9,7 +9,7 @@
     <ImageView
         android:id="@+id/leftkeys_eyesfree"
         android:layout_width="647px"
-        android:layout_height="382px"
+        android:layout_height="550px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_marginBottom="@dimen/activity_vertical_margin"
@@ -18,7 +18,7 @@
     <ImageView
         android:id="@+id/rightkeys_eyesfree"
         android:layout_width="647px"
-        android:layout_height="382px"
+        android:layout_height="550px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="@dimen/activity_vertical_margin"

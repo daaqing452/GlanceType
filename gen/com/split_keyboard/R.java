@@ -27,8 +27,10 @@ public final class R {
         public static final int ic_launcher=0x7f020002;
         public static final int keys_left_eyesfocus=0x7f020003;
         public static final int keys_left_eyesfree=0x7f020004;
-        public static final int keys_right_eyesfocus=0x7f020005;
-        public static final int keys_right_eyesfree=0x7f020006;
+        public static final int keys_left_eyesfree_raw=0x7f020005;
+        public static final int keys_right_eyesfocus=0x7f020006;
+        public static final int keys_right_eyesfree=0x7f020007;
+        public static final int keys_right_eyesfree_raw=0x7f020008;
     }
     public static final class id {
         public static final int action_settings=0x7f090012;
@@ -59,8 +61,9 @@ public final class R {
     }
     public static final class raw {
         public static final int dict=0x7f040000;
-        public static final int model=0x7f040001;
-        public static final int sentences=0x7f040002;
+        public static final int dict_all=0x7f040001;
+        public static final int model=0x7f040002;
+        public static final int sentences=0x7f040003;
     }
     public static final class string {
         public static final int action_settings=0x7f060002;
