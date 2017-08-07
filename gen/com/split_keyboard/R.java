@@ -29,9 +29,6 @@ public final class R {
         public static final int keys_left_eyesfree=0x7f020004;
         public static final int keys_right_eyesfocus=0x7f020005;
         public static final int keys_right_eyesfree=0x7f020006;
-        public static final int marker00=0x7f020007;
-        public static final int marker01=0x7f020008;
-        public static final int marker02=0x7f020009;
     }
     public static final class id {
         public static final int action_settings=0x7f090012;
