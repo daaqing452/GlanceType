@@ -163,5 +163,13 @@
         android:layout_marginBottom="11dp"
         android:text="OOV" />
 
+    <CheckBox
+        android:id="@+id/check"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/oov"
+        android:layout_alignBottom="@+id/oov"
+        android:layout_toLeftOf="@+id/state"
+        android:text="Check" />
 
 </RelativeLayout>

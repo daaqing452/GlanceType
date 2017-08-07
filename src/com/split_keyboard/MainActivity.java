@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -33,11 +34,14 @@ public class MainActivity extends Activity {
 	Button startButton, stopButton;
 	TextView stateView, textView, candidateView, candidateViewL, candidateViewR;
 	ImageView leftEyesfree, rightEyesfree, leftEyesfocus, rightEyesfocus, leftAddition, rightAddition;
+	CheckBox oovCheck, checkCheck;
+	RadioButton eyesfreeRadio, eyesfocusRadio;
 	
 	boolean started = false;
 	boolean eyes_free = true;
 	boolean addition_keyboard = false;
 	boolean oov_insert = false;
+	boolean check = false;
 	
 	final int MAX_SENTENCE = 40;
 	int sentenceID = 0;
@@ -77,6 +81,10 @@ public class MainActivity extends Activity {
 				renewCandidate();
 				renewCandidateLR();
 				renewText();
+				oovCheck.setClickable(false);
+				checkCheck.setClickable(false);
+				eyesfreeRadio.setClickable(false);
+				eyesfocusRadio.setClickable(false);
 			}
 		});
 		stopButton.setOnClickListener(new OnClickListener(){
@@ -93,9 +101,15 @@ public class MainActivity extends Activity {
 				onChangeKeyboard();
 				renewCandidate();
 				renewText();
+				oovCheck.setClickable(true);
+				checkCheck.setClickable(true);
+				eyesfreeRadio.setClickable(true);
+				eyesfocusRadio.setClickable(true);
 			}
 		});
 		
+		eyesfreeRadio = (RadioButton)findViewById(R.id.eyes_free);
+		eyesfocusRadio = (RadioButton)findViewById(R.id.eyes_focus);
 		RadioGroup techniqueGroup = (RadioGroup)findViewById(R.id.technique);
 		techniqueGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
 			@Override
@@ -116,13 +130,22 @@ public class MainActivity extends Activity {
 				}
 			}
 		});
-		
-		CheckBox oovCheck = (CheckBox)findViewById(R.id.oov);
+
+		oovCheck = (CheckBox)findViewById(R.id.oov);
 		oovCheck.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if (started == true) return;
 				oov_insert = isChecked;
+			}
+		});
+
+		checkCheck = (CheckBox)findViewById(R.id.check);
+		checkCheck.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (started == true) return;
+				check = isChecked;
 			}
 		});
 		
@@ -170,6 +193,15 @@ public class MainActivity extends Activity {
 			if (!(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')) return false;
 		}
 		return true;
+	}
+	
+	int getWlistLength() {
+		int len = 0;
+		for (int i = 0; i < wlist.size(); i++) {
+			len += wlist.get(i).length();
+			if (i > 0 && isLetter(wlist.get(i - 1)) && isLetter(wlist.get(i))) len += 1;
+		}
+		return len;
 	}
 	
 	void renewText() {
@@ -248,13 +280,9 @@ public class MainActivity extends Activity {
 			if (i == selected) text += "</font>";
 		}
 		candidateView.setText(Html.fromHtml(text));
-		int cnt = 0;
-		for (int i = 0; i < wlist.size(); i++) {
-			cnt += wlist.get(i).length();
-			if (i > 0 && isLetter(wlist.get(i - 1)) && isLetter(wlist.get(i))) cnt += 1;
-		}
-		if (wlist.size() > 0 && isLetter(wlist.get(wlist.size() - 1))) cnt++;
-		candidateView.setX(650 + cnt * 30);
+		int len = getWlistLength();
+		if (wlist.size() > 0 && isLetter(wlist.get(wlist.size() - 1))) len++;
+		candidateView.setX(650 + len * 30);
 	}
 
 	void renewCandidateLR() {
@@ -356,8 +384,7 @@ public class MainActivity extends Activity {
 				if (wysiwyg.length() > 0) wysiwyg = wysiwyg.substring(0, wysiwyg.length() - 1);
 				break;
 			case 30:
-				//if (wysiwyg.length() == sentence.length()) nextSentence();
-				nextSentence();
+				if (!check || wysiwyg.length() == sentence.length()) nextSentence();
 				break;
 			default:
 				wysiwyg += (char)(best + 'a');
@@ -381,7 +408,7 @@ public class MainActivity extends Activity {
 		}
 		renewText();
 	}
-
+	
 	void swipeDown() {
 		if (!eyes_free) return;
 		if (addition_keyboard) {
@@ -399,10 +426,10 @@ public class MainActivity extends Activity {
 	void swipeRight() {
 		if (!eyes_free) return;
 		if (plist.size() == 0) {
-			//int totalLength = wlist.size() - 1;
-			//for (int i = 0; i < wlist.size(); i++) totalLength += wlist.get(i).length();
-			//if (totalLength == sentence.length()) nextSentence();
-			nextSentence();
+			Log.d("a", ""+check);
+			Log.d("a", ""+getWlistLength());
+			Log.d("a", ""+sentence.length());
+			if (!check || getWlistLength() == sentence.length()) nextSentence();
 		} else {
 			confirmSelection(0);
 			renewCandidate();

@@ -33,12 +33,13 @@ public final class R {
         public static final int keys_right_eyesfree_raw=0x7f020008;
     }
     public static final class id {
-        public static final int action_settings=0x7f090012;
+        public static final int action_settings=0x7f090013;
         public static final int addition_keyboard_left=0x7f090005;
         public static final int addition_keyboard_right=0x7f090006;
         public static final int candidate=0x7f09000e;
         public static final int candidateL=0x7f09000f;
         public static final int candidateR=0x7f090010;
+        public static final int check=0x7f090012;
         public static final int eyes_focus=0x7f09000c;
         public static final int eyes_free=0x7f09000b;
         public static final int leftkeys_eyesfocus=0x7f090003;
