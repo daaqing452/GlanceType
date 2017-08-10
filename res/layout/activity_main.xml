@@ -26,12 +26,12 @@
     
     <ImageView
         android:id="@+id/leftkeys_eyesfocus"
-        android:visibility="invisible"
         android:layout_width="647px"
         android:layout_height="666px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:src="@drawable/keys_left_eyesfocus" />
+        android:src="@drawable/keys_left_eyesfocus"
+        android:visibility="invisible" />
     
     <ImageView
         android:id="@+id/rightkeys_eyesfocus"
@@ -107,7 +107,7 @@
             android:id="@+id/eyes_focus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="eyes_focus" />
+            android:text="traditional" />
 
     </RadioGroup>
 
@@ -131,17 +131,6 @@
         android:text="candidate"
         android:textSize="15dp"
         android:typeface="monospace" />
-
-    <TextView
-        android:id="@+id/candidateL"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/leftkeys_eyesfree"
-        android:layout_alignParentLeft="true"
-        android:layout_marginBottom="70dp"
-        android:text="candidateL"
-        android:textSize="15dp"
-        android:typeface="monospace" />
     
     <TextView
         android:id="@+id/candidateR"
@@ -163,13 +152,41 @@
         android:layout_marginBottom="11dp"
         android:text="OOV" />
 
+    <TextView
+        android:id="@+id/candidateL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignTop="@+id/leftkeys_eyesfree"
+        android:layout_marginTop="11dp"
+        android:text="candidateL"
+        android:textSize="15dp"
+        android:typeface="monospace" />
+
+    <CheckBox
+        android:id="@+id/wyswyg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/check"
+        android:layout_below="@+id/check"
+        android:text="WYSIWYG" />
+
+    <CheckBox
+        android:id="@+id/taponly"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/wyswyg"
+        android:layout_alignBottom="@+id/wyswyg"
+        android:layout_alignLeft="@+id/oov"
+        android:text="TapOnly" />
+
     <CheckBox
         android:id="@+id/check"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/oov"
         android:layout_alignBottom="@+id/oov"
-        android:layout_toLeftOf="@+id/state"
-        android:text="Check" />
+        android:layout_toRightOf="@+id/technique"
+        android:text="CheckLen" />
 
 </RelativeLayout>

@@ -1,8 +1,12 @@
 package com.split_keyboard;
 
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Random;
 
 import com.split_keyboard.R;
@@ -11,6 +15,7 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.opengl.Visibility;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
@@ -34,7 +39,7 @@ public class MainActivity extends Activity {
 	Button startButton, stopButton;
 	TextView stateView, textView, candidateView, candidateViewL, candidateViewR;
 	ImageView leftEyesfree, rightEyesfree, leftEyesfocus, rightEyesfocus, leftAddition, rightAddition;
-	CheckBox oovCheck, checkCheck;
+	CheckBox oovCheck, checkCheck, wysiwygCheck, tapOnlyCheck;
 	RadioButton eyesfreeRadio, eyesfocusRadio;
 	
 	boolean started = false;
@@ -42,6 +47,8 @@ public class MainActivity extends Activity {
 	boolean addition_keyboard = false;
 	boolean oov_insert = false;
 	boolean check = false;
+	boolean show_wysiwyg = false;
+	boolean tap_only = false;
 	
 	final int MAX_SENTENCE = 40;
 	int sentenceID = 0;
@@ -77,12 +84,15 @@ public class MainActivity extends Activity {
 				stateView.setText("STARTED");
 				stateView.setTextColor(Color.GREEN);
 				sentenceID = 1;
+				logStart();
 				generateSentence();
 				renewCandidate();
 				renewCandidateLR();
 				renewText();
 				oovCheck.setClickable(false);
 				checkCheck.setClickable(false);
+				wysiwygCheck.setClickable(false);
+				tapOnlyCheck.setClickable(false);
 				eyesfreeRadio.setClickable(false);
 				eyesfocusRadio.setClickable(false);
 			}
@@ -101,8 +111,11 @@ public class MainActivity extends Activity {
 				onChangeKeyboard();
 				renewCandidate();
 				renewText();
+				logStop();
 				oovCheck.setClickable(true);
 				checkCheck.setClickable(true);
+				wysiwygCheck.setClickable(true);
+				tapOnlyCheck.setClickable(true);
 				eyesfreeRadio.setClickable(true);
 				eyesfocusRadio.setClickable(true);
 			}
@@ -149,6 +162,23 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+		wysiwygCheck = (CheckBox)findViewById(R.id.wyswyg);
+		wysiwygCheck.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (started == true) return;
+				show_wysiwyg = isChecked;
+			}
+		});
+		
+		tapOnlyCheck = (CheckBox)findViewById(R.id.taponly);
+		tapOnlyCheck.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				tap_only = isChecked;
+			}
+		});
+		
 		load();
 		centroid();
 		centroid_addition();
@@ -180,9 +210,11 @@ public class MainActivity extends Activity {
 	
 	
 	final int CANDIDATE_SIZE = 5;
+	final int CANDIDATE_LR_SPAN = 6;
 	ArrayList<String> wlist = new ArrayList<String>();
 	ArrayList<Point> plist = new ArrayList<Point>();
 	ArrayList<Word> candidates = new ArrayList<Word>();
+	ArrayList<Word> candidatesLR = new ArrayList<Word>();
 	int selected = 0;
 	String wysiwyg = "";
 	
@@ -204,7 +236,42 @@ public class MainActivity extends Activity {
 		return len;
 	}
 	
-	void renewText() {
+	ArrayList<Word> getCandidates(BivariateGaussian[][] model) {
+		ArrayList<Word> candidates = new ArrayList<Word>();
+		candidates.clear();
+		int n = plist.size();
+		if (n > 0) {
+			for (int i = 0; i < dict[n].size(); i++) {
+				Word word = dict[n].get(i);
+				String str = word.str;
+				double p = word.value;
+				for (int j = 0; j < n; j++) {
+					Point q = plist.get(j);
+					p *= model[q.hand][(int)(str.charAt(j) - 'a')].probability(q.x, q.y);
+				}
+				candidates.add(new Word(str, p));
+				int j = candidates.size() - 1;
+				while (j > 0 && candidates.get(j).value > candidates.get(j - 1).value) {
+					Word w0 = candidates.get(j);
+					Word w1 = candidates.get(j - 1);
+					String tmpstr = w0.str;
+					w0.str = w1.str;
+					w1.str = tmpstr;
+					double tmpvalue = w0.value;
+					w0.value = w1.value;
+					w1.value = tmpvalue;
+					j--;
+				}
+				if (candidates.size() > CANDIDATE_SIZE) {
+					candidates.remove(candidates.size() - 1);
+				}
+			}
+			if (candidates.size() == 0) candidates.add(new Word(wysiwyg, 0));
+		}
+		return candidates;
+	}
+	
+ 	void renewText() {
 		String text = "sentence: " + sentenceID + "/" + MAX_SENTENCE + "<br/><br/>";
 		text += sentenceColored + "<br/><br/>";
 		ArrayList<String> show = new ArrayList<String>();
@@ -242,37 +309,7 @@ public class MainActivity extends Activity {
 	}
 	
 	void renewCandidate() {
-		candidates.clear();
-		int n = plist.size();
-		if (n > 0) {
-			for (int i = 0; i < dict[n].size(); i++) {
-				Word word = dict[n].get(i);
-				String str = word.str;
-				double p = word.value;
-				for (int j = 0; j < n; j++) {
-					Point q = plist.get(j);
-					p *= model[q.hand][(int)(str.charAt(j) - 'a')].probability(q.x, q.y);
-				}
-				candidates.add(new Word(str, p));
-				int j = candidates.size() - 1;
-				while (j > 0 && candidates.get(j).value > candidates.get(j - 1).value) {
-					Word w0 = candidates.get(j);
-					Word w1 = candidates.get(j - 1);
-					String tmpstr = w0.str;
-					w0.str = w1.str;
-					w1.str = tmpstr;
-					double tmpvalue = w0.value;
-					w0.value = w1.value;
-					w1.value = tmpvalue;
-					j--;
-				}
-				if (candidates.size() > CANDIDATE_SIZE) {
-					candidates.remove(candidates.size() - 1);
-				}
-			}
-			if (candidates.size() == 0) candidates.add(new Word(wysiwyg, 0));
-		}
-		
+		candidates = getCandidates(modelEyesfree);
 		String text = "";
 		for (int i = 0; i < candidates.size(); i++) {
 			if (i == selected) text += "<font color='#ff0000'>";
@@ -287,19 +324,38 @@ public class MainActivity extends Activity {
 
 	void renewCandidateLR() {
 		if (eyes_free) {
-			candidateViewL.setText(Html.fromHtml("<font color='#e7e8e9'>" + wysiwyg + "</font>"));
-			candidateViewR.setText(Html.fromHtml("<font color='#e7e8e9'>" + wysiwyg + "</font>"));
+			String sL = "", sR = "";
+			if (show_wysiwyg) {
+				sL += wysiwyg;
+				sR += wysiwyg;
+			} else {
+				candidatesLR = getCandidates(modelEyesfocus);
+				for (int i = 0; i < candidatesLR.size(); i++) {
+					sL += candidatesLR.get(i).str + "&nbsp;";
+					for (int j = 0; j < Math.max(0, CANDIDATE_LR_SPAN - plist.size()); j++) sL += "&nbsp;";
+				}
+				for (int i = 0; i < candidatesLR.size(); i++) {
+					sR = "&nbsp;" + candidatesLR.get(i).str + sR;
+					for (int j = 0; j < Math.max(0, CANDIDATE_LR_SPAN - plist.size()); j++) sR = "&nbsp;" + sR;
+				}
+				Log.d("sr", sR);
+			}
+			candidateViewL.setText(Html.fromHtml("<font color='#e7e8e9'>" + sL + "</font>"));
+			candidateViewR.setText(Html.fromHtml("<font color='#e7e8e9'>" + sR + "</font>"));
 		}
 	}
 	
-	void confirmSelection(int selected) {
+	void confirmSelection(ArrayList<Word> candidates, int selected) {
 		if (selected == -1) {
+			log("select " + selected + " " + wysiwyg);
 			wlist.add(wysiwyg);
 			plist.clear();
 			wysiwyg = "";
 		} else {
 			if (plist.size() > 0) {
-				wlist.add(candidates.get(selected).str);
+				String selectedStr = candidates.get(selected).str;
+				log("select " + selected + " " + selectedStr);
+				wlist.add(selectedStr);
 				plist.clear();
 				wysiwyg = "";
 			}
@@ -326,6 +382,7 @@ public class MainActivity extends Activity {
 				sentenceColored += " " + arr[i];
 			}
 		}
+		log("sentence " + sentence);
 	}
 	
 	void nextSentence() {
@@ -366,9 +423,20 @@ public class MainActivity extends Activity {
 					break;
 				}
 			} else {
-				if (y < 1100 && (x < 120 || x > 2300)) {
-					confirmSelection(-1);
+				if (y < 1100) {
+					if (show_wysiwyg) {
+						log("tap");
+						confirmSelection(null, -1);
+					} else {
+						int span = (x < 1280) ? x : (2560 - x);
+						int q = span / (Math.max(plist.size(), CANDIDATE_LR_SPAN) + 1) / 18;
+						if (q >= 0 && q < candidatesLR.size()) {
+							log("tap " + q);
+							confirmSelection(candidatesLR, q);
+						}
+					}
 				} else {
+					log("click " + x + " " + y);
 					plist.add(new Point(x, y));
 					wysiwyg += (char)(best + 'a');
 				}
@@ -399,11 +467,13 @@ public class MainActivity extends Activity {
 	void swipeLeft() {
 		if (!eyes_free) return;
 		if (plist.size() > 0) {
+			log("swipeleft");
 			plist.remove(plist.size() - 1);
 			wysiwyg = wysiwyg.substring(0, wysiwyg.length() - 1);
 			renewCandidate();
 			renewCandidateLR();
 		} else if (wlist.size() > 0) {
+			log("swipeleft");
 			wlist.remove(wlist.size() - 1);
 		}
 		renewText();
@@ -415,6 +485,7 @@ public class MainActivity extends Activity {
 			addition_keyboard = false;
 			onChangeKeyboard();
 		} else {
+			log("swipedown");
 			plist.clear();
 			wysiwyg = "";
 			renewCandidate();
@@ -426,14 +497,15 @@ public class MainActivity extends Activity {
 	void swipeRight() {
 		if (!eyes_free) return;
 		if (plist.size() == 0) {
-			Log.d("a", ""+check);
-			Log.d("a", ""+getWlistLength());
-			Log.d("a", ""+sentence.length());
+			log("nextsentence");
 			if (!check || getWlistLength() == sentence.length()) nextSentence();
 		} else {
-			confirmSelection(0);
-			renewCandidate();
-			renewCandidateLR();
+			if (!tap_only) {
+				log("swiperight");
+				confirmSelection(candidates, 0);
+				renewCandidate();
+				renewCandidateLR();
+			}
 		}
 		renewText();
 	}
@@ -447,6 +519,7 @@ public class MainActivity extends Activity {
 	
 	void drag(int x, int y, int downX, int downY) {
 		if (!eyes_free) return;
+		if (tap_only) return;
 		double span = (2550 - downX) / 5.0;
 		span = Math.min(span, 50);
 		double q = (x - 20 - downX) / span;
@@ -458,7 +531,9 @@ public class MainActivity extends Activity {
 	
 	void dragFinish() {
 		if (!eyes_free) return;
-		confirmSelection(selected);
+		if (tap_only) return;
+		log("drag");
+		confirmSelection(candidates, selected);
 		renewCandidate();
 		renewCandidateLR();
 		renewText();
@@ -481,6 +556,7 @@ public class MainActivity extends Activity {
 		switch (event.getActionMasked()){
 		case MotionEvent.ACTION_DOWN:
 		case MotionEvent.ACTION_POINTER_DOWN:
+			log("down");
 			touchEvent[pointerID] = new TouchEvent(x, y);
 			break;
 			
@@ -498,6 +574,7 @@ public class MainActivity extends Activity {
 			
 		case MotionEvent.ACTION_UP:
 		case MotionEvent.ACTION_POINTER_UP:
+			log("up");
 			TouchEvent q = touchEvent[pointerID];
 			int op = q.up(x, y);
 			switch (op) {
@@ -533,11 +610,14 @@ public class MainActivity extends Activity {
 	final int DICT = R.raw.dict;
 	final int MAX_WORD_LENGTH = 99;
 	final int DICT_SIZE = (DICT == R.raw.dict) ? 10000 : 50000;
-	final int OOV_SIZE = 1000;
+	//final int OOV_SIZE = 1000;
 	ArrayList<String> sentences = new ArrayList<String>();
 	ArrayList<Word>[] dict = new ArrayList[MAX_WORD_LENGTH];
 	ArrayList<Word> dict_oov = new ArrayList<Word>();
-	BivariateGaussian[][] model = new BivariateGaussian[2][26];
+	BivariateGaussian[][] modelEyesfree = new BivariateGaussian[2][26];
+	BivariateGaussian[][] modelEyesfocus = new BivariateGaussian[2][26];
+	
+	PrintWriter logger;
 	
 	void load() {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.sentences)));
@@ -566,8 +646,8 @@ public class MainActivity extends Activity {
 				if (str.length() >= MAX_WORD_LENGTH) continue;
 				if (lineNo <= DICT_SIZE) {
 					dict[str.length()].add(new Word(str, freq));
-				} else if (lineNo <= DICT_SIZE + OOV_SIZE) {
-					dict_oov.add(new Word(str, freq));
+				//} else if (lineNo <= DICT_SIZE + OOV_SIZE) {
+				//	dict_oov.add(new Word(str, freq));
 				} else {
 					break;
 				}
@@ -585,10 +665,13 @@ public class MainActivity extends Activity {
 				lineNo++;
 				if (lineNo <= 1) continue;
 				String[] arr = line.split(",");
-				if (arr[0].equals("1")) {
-					int hand = Integer.parseInt(arr[1]);
-					int index = Integer.parseInt(arr[2]);
-					model[hand][index] = new BivariateGaussian(Double.parseDouble(arr[3]), Double.parseDouble(arr[4]), Double.parseDouble(arr[5]), Double.parseDouble(arr[6]));
+				int mode = Integer.parseInt(arr[0]);
+				int hand = Integer.parseInt(arr[1]);
+				int index = Integer.parseInt(arr[2]);
+				if (mode == 2) {
+					modelEyesfocus[hand][index] = new BivariateGaussian(Double.parseDouble(arr[3]), Double.parseDouble(arr[4]), Double.parseDouble(arr[5]), Double.parseDouble(arr[6]));
+				} else if (mode == 1) {
+					modelEyesfree[hand][index] = new BivariateGaussian(Double.parseDouble(arr[3]), Double.parseDouble(arr[4]), Double.parseDouble(arr[5]), Double.parseDouble(arr[6]));
 				}
 			}
 			reader.close();
@@ -598,8 +681,31 @@ public class MainActivity extends Activity {
 		}
 	}
 	
+	void logStart() {
+		Calendar calendar = Calendar.getInstance();
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH) + 1;
+		int day = calendar.get(Calendar.DATE);
+		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		int minute = calendar.get(Calendar.MINUTE);
+		int second = calendar.get(Calendar.SECOND);
+		String fileName = "" + year + month + day + hour + minute + second + ".txt";
+		try {
+			logger = new PrintWriter(new OutputStreamWriter(new FileOutputStream(Environment.getExternalStorageDirectory().getPath() + "/" + fileName, true)), true);
+		} catch (Exception e) {
+			Log.d("ERROR: open logger", e.toString());
+		}
+	}
 	
+	void logStop() {
+		logger.close();
+	}
 	
+	void log(String s) {
+		s = System.currentTimeMillis() + " " + s;
+		logger.println(s);
+	}
+
 	
 	
 	Point[] posEyesfree = new Point[26];
