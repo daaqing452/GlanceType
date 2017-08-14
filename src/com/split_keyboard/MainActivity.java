@@ -431,7 +431,7 @@ public class MainActivity extends Activity {
 						int span = (x < 1280) ? x : (2560 - x);
 						int q = span / (Math.max(plist.size(), CANDIDATE_LR_SPAN) + 1) / 18;
 						if (q >= 0 && q < candidatesLR.size()) {
-							log("tap " + q);
+							log("tap " + q + " " + (x < 1280 ? "L" : "R"));
 							confirmSelection(candidatesLR, q);
 						}
 					}
