@@ -367,7 +367,7 @@ public class MainActivity extends Activity {
 		sentence = sentences.get(random.nextInt(sentences.size()));
 		sentenceColored = sentence;
 		if (oov_insert) {
-			String[] arr = sentence.split(" ");
+			/*String[] arr = sentence.split(" ");
 			sentence = sentenceColored = "";
 			String oov = dict_oov.get(random.nextInt(dict_oov.size())).str;
 			int oov_index = random.nextInt(arr.length + 1);
@@ -380,7 +380,13 @@ public class MainActivity extends Activity {
 			for (int i = oov_index; i < arr.length; i++) {
 				sentence += " " + arr[i];
 				sentenceColored += " " + arr[i];
+			}*/
+			if (sentenceID > oov_sentences.size()) {
+				stopButton.performClick();
+				return;
 			}
+			sentence = oov_sentences.get(sentenceID - 1);
+			sentenceColored = sentence;
 		}
 		log("sentence " + sentence);
 	}
@@ -552,6 +558,7 @@ public class MainActivity extends Activity {
 		int pointerID = event.getPointerId(index);
 		int x = (int)event.getX(index);
 		int y = (int)event.getY(index);
+		Log.d("pressure", event.getPressure(index) + "");
 		
 		switch (event.getActionMasked()){
 		case MotionEvent.ACTION_DOWN:
@@ -610,10 +617,11 @@ public class MainActivity extends Activity {
 	final int DICT = R.raw.dict;
 	final int MAX_WORD_LENGTH = 99;
 	final int DICT_SIZE = (DICT == R.raw.dict) ? 10000 : 50000;
-	//final int OOV_SIZE = 1000;
+	final int OOV_SIZE = 1000;
 	ArrayList<String> sentences = new ArrayList<String>();
 	ArrayList<Word>[] dict = new ArrayList[MAX_WORD_LENGTH];
 	ArrayList<Word> dict_oov = new ArrayList<Word>();
+	ArrayList<String> oov_sentences = new ArrayList<String>();
 	BivariateGaussian[][] modelEyesfree = new BivariateGaussian[2][26];
 	BivariateGaussian[][] modelEyesfocus = new BivariateGaussian[2][26];
 	
@@ -646,8 +654,8 @@ public class MainActivity extends Activity {
 				if (str.length() >= MAX_WORD_LENGTH) continue;
 				if (lineNo <= DICT_SIZE) {
 					dict[str.length()].add(new Word(str, freq));
-				//} else if (lineNo <= DICT_SIZE + OOV_SIZE) {
-				//	dict_oov.add(new Word(str, freq));
+				} else if (lineNo <= DICT_SIZE + OOV_SIZE) {
+					dict_oov.add(new Word(str, freq));
 				} else {
 					break;
 				}
@@ -678,6 +686,17 @@ public class MainActivity extends Activity {
 			Log.d("load", "finish read model");
 		} catch (Exception e) {
 			Log.d("error", "read model");
+		}
+		
+		reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.chat)));
+		try {
+			while ((line = reader.readLine()) != null) {
+				oov_sentences.add(line.toLowerCase());
+			}
+			reader.close();
+			Log.d("load", "finish read sentences");
+		} catch (Exception e) {
+			Log.d("error", "read sentences");
 		}
 	}
 	
