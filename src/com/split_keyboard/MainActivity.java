@@ -187,6 +187,21 @@ public class MainActivity extends Activity {
 		return len;
 	}
 	
+	String filterUppercase(String s) {
+		String t = "";
+		int j = 0;
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c < 'a' || c > 'z') {
+				t += c;
+				continue;
+			}
+			t += (plist.get(j).uppercase) ? (char)(c - 'a' + 'A') : c;
+			j++;
+		}
+		return t;
+	}
+	
 	ArrayList<Word> getCandidates(BivariateGaussian[][] model) {
 		ArrayList<Word> candidates = new ArrayList<Word>();
 		candidates.clear();
@@ -200,7 +215,7 @@ public class MainActivity extends Activity {
 					Point q = plist.get(j);
 					p *= model[q.hand][(int)(str.charAt(j) - 'a')].probability(q.x, q.y);
 				}
-				candidates.add(new Word(str, p));
+				candidates.add(new Word(filterUppercase(word.str_show), p));
 				int j = candidates.size() - 1;
 				while (j > 0 && candidates.get(j).value > candidates.get(j - 1).value) {
 					Word w0 = candidates.get(j);
@@ -217,7 +232,7 @@ public class MainActivity extends Activity {
 					candidates.remove(candidates.size() - 1);
 				}
 			}
-			if (candidates.size() == 0) candidates.add(new Word(wysiwyg, 0));
+			if (candidates.size() == 0) candidates.add(new Word(filterUppercase(wysiwyg), 0));
 		}
 		return candidates;
 	}
@@ -291,10 +306,12 @@ public class MainActivity extends Activity {
 	
 	void confirmSelection(ArrayList<Word> candidates, int selected) {
 		if (selected == -1) {
-			log("select " + selected + " " + wysiwyg);
-			wlist.add(wysiwyg);
-			plist.clear();
-			wysiwyg = "";
+			if (wysiwyg.length() > 0) {
+				log("select " + selected + " " + wysiwyg);
+				wlist.add(wysiwyg);
+				plist.clear();
+				wysiwyg = "";
+			}
 		} else {
 			if (plist.size() > 0) {
 				String selectedStr = candidates.get(selected).str;
@@ -304,7 +321,7 @@ public class MainActivity extends Activity {
 				wysiwyg = "";
 			}
 		}
-		selected = 0;
+		this.selected = 0;
 	}
 
 	void generateSentence() {
@@ -346,11 +363,11 @@ public class MainActivity extends Activity {
 		wlist.clear();
 	}
 	
-	void click(int x, int y) {
+	void click(int x, int y, boolean rub) {
 		//Log.d("xy", x + " " + y);
 		double bestDist = 1e20;
 		int best = -1;
-		Point[] pos =addition_keyboard ? posAddition : posEyesfree;
+		Point[] pos = addition_keyboard ? posAddition : posEyesfree;
 		for (int i = 0; i < pos.length; i++) {
 			double dist = Math.pow(x - pos[i].x, 2) + Math.pow(y - pos[i].y, 2);
 			if (bestDist > dist) {
@@ -358,7 +375,7 @@ public class MainActivity extends Activity {
 				best = i;
 			}
 		}
-		
+
 		if (addition_keyboard) {
 			switch (best) {
 			case 34:
@@ -386,11 +403,21 @@ public class MainActivity extends Activity {
 				}
 			} else {
 				log("click " + x + " " + y);
-				plist.add(new Point(x, y));
-				wysiwyg += (char)(best + 'a');
+				plist.add(new Point(x, y, rub));
+				switch (best) {
+				case 26:
+					wysiwyg += ',';
+					break;
+				case 27:
+					wysiwyg += '.';
+					break;
+				default:
+					wysiwyg += (plist.get(plist.size() - 1).uppercase) ? (char)(best + 'A') : (char)(best + 'a');
+					break;
+				}
 			}
 		}
-		
+
 		renewCandidate();
 		renewCandidateLR();
 		renewText();
@@ -426,8 +453,19 @@ public class MainActivity extends Activity {
 	
 	void swipeRight() {
 		if (plist.size() == 0) {
-			log("nextsentence");
-			if (!check || getWlistLength() == sentence.length()) nextSentence();
+			if (oov_insert) {
+				if (getWlistLength() == sentence.length()) {
+					log("nextsentence");
+					nextSentence();
+				} else {
+					wlist.add(" ");
+				}
+			} else {
+				if (!check || getWlistLength() == sentence.length()) {
+					log("nextsentence");
+					nextSentence();
+				}
+			}
 		} else {
 			if (!tap_only) {
 				log("swiperight");
@@ -479,7 +517,7 @@ public class MainActivity extends Activity {
 		int pointerID = event.getPointerId(index);
 		int x = (int)event.getX(index);
 		int y = (int)event.getY(index);
-		Log.d("pressure", event.getPressure(index) + "");
+		//Log.d("pressure", event.getPressure(index) + "");
 		
 		switch (event.getActionMasked()){
 		case MotionEvent.ACTION_DOWN:
@@ -493,10 +531,10 @@ public class MainActivity extends Activity {
 				int j = event.getPointerId(i);
 				int xx = (int)event.getX(i);
 				int yy = (int)event.getY(i);
-				/*if (touchEvent[j].anyMove(xx, yy)) {
+				if (touchEvent[j].anyMove(xx, yy)) {
 					drag(xx, yy, touchEvent[j].downX, touchEvent[j].downY);
-				}*/
-				drag(xx, yy, touchEvent[j].downX, touchEvent[j].downY);
+				}
+				//drag(xx, yy, touchEvent[j].downX, touchEvent[j].downY);
 			}
 			break;
 			
@@ -507,7 +545,10 @@ public class MainActivity extends Activity {
 			int op = q.up(x, y);
 			switch (op) {
 			case TouchEvent.EVENT_CLICK:
-				click((q.x + q.downX) / 2, (q.y + q.downY) / 2);
+				click((q.x + q.downX) / 2, (q.y + q.downY) / 2, false);
+				break;
+			case TouchEvent.EVENT_RUB:
+				click((q.x + q.downX) / 2, (q.y + q.downY) / 2, true);
 				break;
 			case TouchEvent.EVENT_SWIPE_LEFT:
 				if (n == 1) swipeLeft();
@@ -537,11 +578,11 @@ public class MainActivity extends Activity {
 	
 	final int DICT = R.raw.dict;
 	final int MAX_WORD_LENGTH = 99;
-	final int DICT_SIZE = (DICT == R.raw.dict) ? 10000 : 50000;
-	final int OOV_SIZE = 1000;
+	final int DICT_SIZE = (DICT == R.raw.dict) ? 10003 : 50000;
+	//final int OOV_SIZE = 1000;
 	ArrayList<String> sentences = new ArrayList<String>();
 	ArrayList<Word>[] dict = new ArrayList[MAX_WORD_LENGTH];
-	ArrayList<Word> dict_oov = new ArrayList<Word>();
+	//ArrayList<Word> dict_oov = new ArrayList<Word>();
 	ArrayList<String> oov_sentences = new ArrayList<String>();
 	BivariateGaussian[][] modelEyesfree = new BivariateGaussian[2][26];
 	BivariateGaussian[][] modelEyesfocus = new BivariateGaussian[2][26];
@@ -574,9 +615,14 @@ public class MainActivity extends Activity {
 				double freq = Double.parseDouble(arr[1]);
 				if (str.length() >= MAX_WORD_LENGTH) continue;
 				if (lineNo <= DICT_SIZE) {
-					dict[str.length()].add(new Word(str, freq));
-				} else if (lineNo <= DICT_SIZE + OOV_SIZE) {
-					dict_oov.add(new Word(str, freq));
+					String s = "";
+					for (int i = 0; i < str.length(); i++) {
+						char c = str.charAt(i);
+						if (c >= 'a' && c <= 'z') s += c;
+					}
+					dict[s.length()].add(new Word(s, str, freq));
+				//} else if (lineNo <= DICT_SIZE + OOV_SIZE) {
+				//	dict_oov.add(new Word(str, freq));
 				} else {
 					break;
 				}
@@ -648,9 +694,9 @@ public class MainActivity extends Activity {
 
 	
 	
-	Point[] posEyesfree = new Point[26];
+	Point[] posEyesfree = new Point[28];
 	Point[] posAddition = new Point[50];
-	String charAddition = "12345!@#$%+-¡Á¡Â=~`<>?'\"   67890^&*_ |()  :{}[];,./\\";
+	String charAddition = "12345!@*_?+-/\\#~():;'\"   67890^&$% |<>  `{}[],.¡Á¡Â=";
 	
 	void centroid() {
 		RelativeLayout layout = (RelativeLayout)findViewById(R.id.main_layout);
@@ -659,8 +705,7 @@ public class MainActivity extends Activity {
 		drawView.setAlpha(0.5f);
         //layout.addView(drawView);
 		
-		final int Y0_Eyesfree = 1250;
-		final int Y0_Eyesfocus = 1140;
+		final int Y0 = 1250;
 		final int[] LX = new int[] {133, 175, 235};
 		final int[] RX = new int[] {1453, 1495, 1555};
 		final int Y = 130;
@@ -671,13 +716,17 @@ public class MainActivity extends Activity {
 		for (int y = 0; y < 3; y++) {
 			for (int x = 0; x < gap[y]; x++) {
 				int index = keyboard[y].charAt(x) - 'a';
-				posEyesfree[index] = new Point(LX[y] + x * X, Y0_Eyesfree + y * Y);
+				posEyesfree[index] = new Point(LX[y] + x * X, Y0 + y * Y);
 			}
 			for (int x = gap[y]; x < keyboard[y].length(); x++) {
 				int index = keyboard[y].charAt(x) - 'a';
-				posEyesfree[index] = new Point(RX[y] + x * X, Y0_Eyesfree + y * Y);
+				posEyesfree[index] = new Point(RX[y] + x * X, Y0 + y * Y);
 			}
 		}
+		
+		// , and .
+		posEyesfree[26] = new Point(RX[2] + 7 * X, Y0 + 2 * Y);
+		posEyesfree[27] = new Point(RX[2] + 8 * X, Y0 + 2 * Y);
 	}
 	
 	void centroid_addition() {

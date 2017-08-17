@@ -8,9 +8,11 @@ import android.util.Log;
 
 public class TouchEvent {
 	
-	final int DRAG_TIME = 350;
+	final int DRAG_TIME = 500;
 	final int DWELL_DIST = 70;
 	final int SWIPE_DIST = 90;
+	final int RUB_DIST_1 = 20;
+	final int RUB_DIST_2 = 5;
 	
 	public final static int EVENT_NULL = 0;
 	public final static int EVENT_CLICK = 1;
@@ -19,12 +21,17 @@ public class TouchEvent {
 	public final static int EVENT_SWIPE_RIGHT = 4;
 	public final static int EVENT_SWIPE_UP = 5;
 	public final static int EVENT_SWIPE_DOWN = 6;
+	public final static int EVENT_RUB = 7;
 	
 	int downX, downY;
 	int x, y;
 	Timer timer;
 	boolean hand;
 	boolean drag = false;
+	
+	//double maxX = -1e20, minX = 1e20, maxY = -1e20, minY = 1e20;
+	double maxDist = 0;
+	int maxX = 0, maxY = 0;
 	
 	public TouchEvent(int downX, int downY) {
 		this.x = this.downX = downX;
@@ -38,13 +45,23 @@ public class TouchEvent {
 		if (this.x == x && this.y == y) return false;
 		this.x = x;
 		this.y = y;
+		double nowDist = Point.dist(x, y, downX, downY);
+		if (nowDist > maxDist) {
+			maxDist = nowDist;
+			maxX = x;
+			maxY = y;
+		}
 		return drag;
 	}
 	
 	public int up(int x, int y) {
 		this.x = x;
 		this.y = y;
+		//Log.d("rub", "now " + (x - downX) + " " + (y - downY) + " " + Point.dist(x, y, downX, downY));
+		//Log.d("rub", "max " + minX + " " + maxX + " " + minY + " " + maxY + " " + maxDist);
+		Log.d("rub", maxDist + " " + Point.dist(x, y, maxX, maxY));
 		if (drag) return EVENT_DRAG;
+		if (maxDist > RUB_DIST_1 && Point.dist(x, y, maxX, maxY) > RUB_DIST_2) return EVENT_RUB;
 		if (ifDwell()) return EVENT_CLICK;
 		if (Math.abs(x - downX) > Math.abs(y - downY)) {
 			if (x < downX - SWIPE_DIST) return EVENT_SWIPE_LEFT;
@@ -57,7 +74,7 @@ public class TouchEvent {
 	}
 	
 	public boolean ifDwell() {
-		return Math.sqrt(Math.pow(x - downX, 2) + Math.pow(y - downY, 2)) < DWELL_DIST;
+		return Point.dist(x,  y, downX, downY) < DWELL_DIST;
 	}
 }
 
@@ -83,15 +100,26 @@ class Point {
 	
 	int x, y, hand;
 	Date date;
+	boolean uppercase;
 	
 	public Point() {
 		x = y = 0;
+		uppercase = false;
+	}
+	
+	public Point(int x, int y, boolean uppercase) {
+		this.x = x;
+		this.y = y;
+		this.uppercase = uppercase;
+		this.hand = (x < 1280) ? 1 : 0;
+		this.date = new Date();
 	}
 	
 	public Point(int x, int y) {
-		this.x = x;
-		this.y = y;
-		this.hand = (x < 1280) ? 1 : 0;
-		this.date = new Date();
+		this(x, y, false);
+	}
+	
+	static double dist(int x, int y, int xx, int yy) {
+		return Math.sqrt(Math.pow(x - xx, 2) + Math.pow(y - yy, 2));
 	}
 }
