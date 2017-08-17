@@ -38,12 +38,10 @@ public class MainActivity extends Activity {
 			
 	Button startButton, stopButton;
 	TextView stateView, textView, candidateView, candidateViewL, candidateViewR;
-	ImageView leftEyesfree, rightEyesfree, leftEyesfocus, rightEyesfocus, leftAddition, rightAddition;
+	ImageView leftEyesfree, rightEyesfree, leftAddition, rightAddition;
 	CheckBox oovCheck, checkCheck, wysiwygCheck, tapOnlyCheck;
-	RadioButton eyesfreeRadio, eyesfocusRadio;
 	
 	boolean started = false;
-	boolean eyes_free = true;
 	boolean addition_keyboard = false;
 	boolean oov_insert = false;
 	boolean check = false;
@@ -67,8 +65,6 @@ public class MainActivity extends Activity {
 		candidateViewR = (TextView)findViewById(R.id.candidateR);
 		leftEyesfree = (ImageView)findViewById(R.id.leftkeys_eyesfree);
 		rightEyesfree = (ImageView)findViewById(R.id.rightkeys_eyesfree);
-		leftEyesfocus = (ImageView)findViewById(R.id.leftkeys_eyesfocus);
-		rightEyesfocus = (ImageView)findViewById(R.id.rightkeys_eyesfocus);
 		leftAddition = (ImageView)findViewById(R.id.addition_keyboard_left);
 		rightAddition = (ImageView)findViewById(R.id.addition_keyboard_right);
 
@@ -93,8 +89,6 @@ public class MainActivity extends Activity {
 				checkCheck.setClickable(false);
 				wysiwygCheck.setClickable(false);
 				tapOnlyCheck.setClickable(false);
-				eyesfreeRadio.setClickable(false);
-				eyesfocusRadio.setClickable(false);
 			}
 		});
 		stopButton.setOnClickListener(new OnClickListener(){
@@ -116,34 +110,9 @@ public class MainActivity extends Activity {
 				checkCheck.setClickable(true);
 				wysiwygCheck.setClickable(true);
 				tapOnlyCheck.setClickable(true);
-				eyesfreeRadio.setClickable(true);
-				eyesfocusRadio.setClickable(true);
 			}
 		});
 		
-		eyesfreeRadio = (RadioButton)findViewById(R.id.eyes_free);
-		eyesfocusRadio = (RadioButton)findViewById(R.id.eyes_focus);
-		RadioGroup techniqueGroup = (RadioGroup)findViewById(R.id.technique);
-		techniqueGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(RadioGroup group, int checkedId) {
-				if (started == true) return;
-				if (checkedId == R.id.eyes_free) {
-					eyes_free = true;
-					candidateViewL.setY(875);
-					candidateViewR.setY(875);
-					onChangeKeyboard();
-				} else if (checkedId == R.id.eyes_focus) {
-					eyes_free = false;
-					candidateViewL.setY(700);
-					candidateViewR.setY(700);
-					onChangeKeyboard();
-				} else {
-					Log.d("error", "radio group");
-				}
-			}
-		});
-
 		oovCheck = (CheckBox)findViewById(R.id.oov);
 		oovCheck.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
 			@Override
@@ -185,25 +154,16 @@ public class MainActivity extends Activity {
 	}
 	
 	void onChangeKeyboard() {
-		if (eyes_free) {
-			if (addition_keyboard) {
-				leftAddition.setVisibility(View.VISIBLE);
-				rightAddition.setVisibility(View.VISIBLE);
-				leftEyesfree.setVisibility(View.INVISIBLE);
-				rightEyesfree.setVisibility(View.INVISIBLE);
-			} else {
-				leftEyesfree.setVisibility(View.VISIBLE);
-				rightEyesfree.setVisibility(View.VISIBLE);
-				leftAddition.setVisibility(View.INVISIBLE);
-				rightAddition.setVisibility(View.INVISIBLE);
-			}
-			leftEyesfocus.setVisibility(View.INVISIBLE);
-			rightEyesfocus.setVisibility(View.INVISIBLE);
-		} else {
-			leftEyesfocus.setVisibility(View.VISIBLE);
-			rightEyesfocus.setVisibility(View.VISIBLE);
+		if (addition_keyboard) {
+			leftAddition.setVisibility(View.VISIBLE);
+			rightAddition.setVisibility(View.VISIBLE);
 			leftEyesfree.setVisibility(View.INVISIBLE);
 			rightEyesfree.setVisibility(View.INVISIBLE);
+		} else {
+			leftEyesfree.setVisibility(View.VISIBLE);
+			rightEyesfree.setVisibility(View.VISIBLE);
+			leftAddition.setVisibility(View.INVISIBLE);
+			rightAddition.setVisibility(View.INVISIBLE);
 		}
 	}
 	
@@ -218,20 +178,11 @@ public class MainActivity extends Activity {
 	int selected = 0;
 	String wysiwyg = "";
 	
-	boolean isLetter(String word) {
-		if (!eyes_free) return false;
-		for (int i = 0; i < word.length(); i++) {
-			char c = word.charAt(i);
-			if (!(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')) return false;
-		}
-		return true;
-	}
-	
 	int getWlistLength() {
 		int len = 0;
 		for (int i = 0; i < wlist.size(); i++) {
 			len += wlist.get(i).length();
-			if (i > 0 && isLetter(wlist.get(i - 1)) && isLetter(wlist.get(i))) len += 1;
+			if (!oov_insert && i < wlist.size() - 1) len++;
 		}
 		return len;
 	}
@@ -274,17 +225,8 @@ public class MainActivity extends Activity {
  	void renewText() {
 		String text = "sentence: " + sentenceID + "/" + MAX_SENTENCE + "<br/><br/>";
 		text += sentenceColored + "<br/><br/>";
-		ArrayList<String> show = new ArrayList<String>();
-		for (int i = 0; i < wlist.size(); i++) show.add(wlist.get(i));
-		if (plist.size() > 0) {
-			show.add(candidates.get(selected).str);
-		} else {
-			show.add(wysiwyg);
-		}
-		for (int i = 0; i < show.size(); i++) {
-			if (i > 0 && isLetter(show.get(i - 1)) && isLetter(show.get(i))) text += " ";
-			String s = show.get(i);
-			if (s.isEmpty()) continue;
+		for (int i = 0; i < wlist.size(); i++) {
+			String s = wlist.get(i);
 			switch (s.charAt(0)) {
 			case '<':
 				s = "&lt;";
@@ -303,6 +245,10 @@ public class MainActivity extends Activity {
 				break;
 			}
 			text += s;
+			if (!oov_insert) text += " ";
+		}
+		if (plist.size() > 0) {
+			text += candidates.get(selected).str;
 		}
 		text += "<font color='#aaaaaa'>_</font>";
 		textView.setText(Html.fromHtml(text));
@@ -318,31 +264,29 @@ public class MainActivity extends Activity {
 		}
 		candidateView.setText(Html.fromHtml(text));
 		int len = getWlistLength();
-		if (wlist.size() > 0 && isLetter(wlist.get(wlist.size() - 1))) len++;
+		if (wlist.size() > 0 && !oov_insert) len++;
 		candidateView.setX(650 + len * 30);
 	}
 
 	void renewCandidateLR() {
-		if (eyes_free) {
-			String sL = "", sR = "";
-			if (show_wysiwyg) {
-				sL += wysiwyg;
-				sR += wysiwyg;
-			} else {
-				candidatesLR = getCandidates(modelEyesfocus);
-				for (int i = 0; i < candidatesLR.size(); i++) {
-					sL += candidatesLR.get(i).str + "&nbsp;";
-					for (int j = 0; j < Math.max(0, CANDIDATE_LR_SPAN - plist.size()); j++) sL += "&nbsp;";
-				}
-				for (int i = 0; i < candidatesLR.size(); i++) {
-					sR = "&nbsp;" + candidatesLR.get(i).str + sR;
-					for (int j = 0; j < Math.max(0, CANDIDATE_LR_SPAN - plist.size()); j++) sR = "&nbsp;" + sR;
-				}
-				Log.d("sr", sR);
+		String sL = "", sR = "";
+		if (show_wysiwyg) {
+			sL += wysiwyg;
+			sR += wysiwyg;
+		} else {
+			candidatesLR = getCandidates(modelEyesfocus);
+			for (int i = 0; i < candidatesLR.size(); i++) {
+				sL += candidatesLR.get(i).str + "&nbsp;";
+				for (int j = 0; j < Math.max(0, CANDIDATE_LR_SPAN - plist.size()); j++) sL += "&nbsp;";
 			}
-			candidateViewL.setText(Html.fromHtml("<font color='#e7e8e9'>" + sL + "</font>"));
-			candidateViewR.setText(Html.fromHtml("<font color='#e7e8e9'>" + sR + "</font>"));
+			for (int i = 0; i < candidatesLR.size(); i++) {
+				sR = "&nbsp;" + candidatesLR.get(i).str + sR;
+				for (int j = 0; j < Math.max(0, CANDIDATE_LR_SPAN - plist.size()); j++) sR = "&nbsp;" + sR;
+			}
+			Log.d("sr", sR);
 		}
+		candidateViewL.setText(Html.fromHtml("<font color='#e7e8e9'>" + sL + "</font>"));
+		candidateViewR.setText(Html.fromHtml("<font color='#e7e8e9'>" + sR + "</font>"));
 	}
 	
 	void confirmSelection(ArrayList<Word> candidates, int selected) {
@@ -406,7 +350,7 @@ public class MainActivity extends Activity {
 		//Log.d("xy", x + " " + y);
 		double bestDist = 1e20;
 		int best = -1;
-		Point[] pos = (eyes_free ? (addition_keyboard ? posEyesfreeAddition : posEyesfree) : posEyesfocus);
+		Point[] pos =addition_keyboard ? posAddition : posEyesfree;
 		for (int i = 0; i < pos.length; i++) {
 			double dist = Math.pow(x - pos[i].x, 2) + Math.pow(y - pos[i].y, 2);
 			if (bestDist > dist) {
@@ -415,63 +359,44 @@ public class MainActivity extends Activity {
 			}
 		}
 		
-		if (eyes_free) {
-			if (addition_keyboard) {
-				switch (best) {
-				case 34:
-					swipeLeft();
-					break;
-				case 38:
-				case 39:
-					break;
-				default:
-					wlist.add("" + charEyesfreeAddition.charAt(best));
-					break;
-				}
-			} else {
-				if (y < 1100) {
-					if (show_wysiwyg) {
-						log("tap");
-						confirmSelection(null, -1);
-					} else {
-						int span = (x < 1280) ? x : (2560 - x);
-						int q = span / (Math.max(plist.size(), CANDIDATE_LR_SPAN) + 1) / 18;
-						if (q >= 0 && q < candidatesLR.size()) {
-							log("tap " + q + " " + (x < 1280 ? "L" : "R"));
-							confirmSelection(candidatesLR, q);
-						}
-					}
-				} else {
-					log("click " + x + " " + y);
-					plist.add(new Point(x, y));
-					wysiwyg += (char)(best + 'a');
-				}
-			}
-		} else {
+		if (addition_keyboard) {
 			switch (best) {
-			case 26:
-			case 27:
-			case 28:
-				wysiwyg += " ";
+			case 34:
+				swipeLeft();
 				break;
-			case 29:
-				if (wysiwyg.length() > 0) wysiwyg = wysiwyg.substring(0, wysiwyg.length() - 1);
-				break;
-			case 30:
-				if (!check || wysiwyg.length() == sentence.length()) nextSentence();
+			case 38:
+			case 39:
 				break;
 			default:
-				wysiwyg += (char)(best + 'a');
+				wlist.add("" + charAddition.charAt(best));
 				break;
 			}
+		} else {
+			if (y < 1120) {
+				if (show_wysiwyg) {
+					log("tap");
+					confirmSelection(null, -1);
+				} else {
+					int span = (x < 1280) ? x : (2560 - x);
+					int q = span / (Math.max(plist.size(), CANDIDATE_LR_SPAN) + 1) / 18;
+					if (q >= 0 && q < candidatesLR.size()) {
+						log("tap " + q + " " + (x < 1280 ? "L" : "R"));
+						confirmSelection(candidatesLR, q);
+					}
+				}
+			} else {
+				log("click " + x + " " + y);
+				plist.add(new Point(x, y));
+				wysiwyg += (char)(best + 'a');
+			}
 		}
+		
 		renewCandidate();
 		renewCandidateLR();
 		renewText();
 	}
 	
 	void swipeLeft() {
-		if (!eyes_free) return;
 		if (plist.size() > 0) {
 			log("swipeleft");
 			plist.remove(plist.size() - 1);
@@ -486,7 +411,6 @@ public class MainActivity extends Activity {
 	}
 	
 	void swipeDown() {
-		if (!eyes_free) return;
 		if (addition_keyboard) {
 			addition_keyboard = false;
 			onChangeKeyboard();
@@ -501,7 +425,6 @@ public class MainActivity extends Activity {
 	}
 	
 	void swipeRight() {
-		if (!eyes_free) return;
 		if (plist.size() == 0) {
 			log("nextsentence");
 			if (!check || getWlistLength() == sentence.length()) nextSentence();
@@ -517,14 +440,13 @@ public class MainActivity extends Activity {
 	}
 
 	void swipeUp() {
-		if (eyes_free && plist.size() == 0) {
+		if (plist.size() == 0) {
 			addition_keyboard = !addition_keyboard;
 			onChangeKeyboard();
 		}
 	}
 	
 	void drag(int x, int y, int downX, int downY) {
-		if (!eyes_free) return;
 		if (tap_only) return;
 		double span = (2550 - downX) / 5.0;
 		span = Math.min(span, 50);
@@ -536,7 +458,6 @@ public class MainActivity extends Activity {
 	}
 	
 	void dragFinish() {
-		if (!eyes_free) return;
 		if (tap_only) return;
 		log("drag");
 		confirmSelection(candidates, selected);
@@ -728,9 +649,8 @@ public class MainActivity extends Activity {
 	
 	
 	Point[] posEyesfree = new Point[26];
-	Point[] posEyesfocus = new Point[31];
-	Point[] posEyesfreeAddition = new Point[50];
-	String charEyesfreeAddition = "12345!@#$%+-¡Á¡Â=~`<>?'\"   67890^&*_ |()  :{}[];,./\\";
+	Point[] posAddition = new Point[50];
+	String charAddition = "12345!@#$%+-¡Á¡Â=~`<>?'\"   67890^&*_ |()  :{}[];,./\\";
 	
 	void centroid() {
 		RelativeLayout layout = (RelativeLayout)findViewById(R.id.main_layout);
@@ -752,23 +672,12 @@ public class MainActivity extends Activity {
 			for (int x = 0; x < gap[y]; x++) {
 				int index = keyboard[y].charAt(x) - 'a';
 				posEyesfree[index] = new Point(LX[y] + x * X, Y0_Eyesfree + y * Y);
-				posEyesfocus[index] = new Point(LX[y] + x * X, Y0_Eyesfocus + y * Y);
 			}
 			for (int x = gap[y]; x < keyboard[y].length(); x++) {
 				int index = keyboard[y].charAt(x) - 'a';
 				posEyesfree[index] = new Point(RX[y] + x * X, Y0_Eyesfree + y * Y);
-				posEyesfocus[index] = new Point(RX[y] + x * X, Y0_Eyesfocus + y * Y);
 			}
 		}
-		
-		// space
-		posEyesfocus[26] = new Point(LX[1] + 2 * X, Y0_Eyesfocus + 3 * Y);
-		posEyesfocus[27] = new Point(LX[1] + 3 * X, Y0_Eyesfocus + 3 * Y);
-		posEyesfocus[28] = new Point(LX[1] + 4 * X, Y0_Eyesfocus + 3 * Y);
-		// backspace
-		posEyesfocus[29] = new Point(RX[0] + 10 * X, Y0_Eyesfocus + 0 * Y);
-		// enter
-		posEyesfocus[30] = new Point(RX[1] + 9 * X, Y0_Eyesfocus + 1 * Y);
 	}
 	
 	void centroid_addition() {
@@ -779,8 +688,8 @@ public class MainActivity extends Activity {
 		final int X = 104;
 		
 		for (int y = 0; y < 5; y++) {
-			for (int x = 0; x <  5; x++) posEyesfreeAddition[y * 5 + x     ] = new Point(LX + x * X, Y0 + y * Y);
-			for (int x = 5; x < 10; x++) posEyesfreeAddition[y * 5 + x + 20] = new Point(RX + x * X, Y0 + y * Y);
+			for (int x = 0; x <  5; x++) posAddition[y * 5 + x     ] = new Point(LX + x * X, Y0 + y * Y);
+			for (int x = 5; x < 10; x++) posAddition[y * 5 + x + 20] = new Point(RX + x * X, Y0 + y * Y);
 		}
 	}
 }

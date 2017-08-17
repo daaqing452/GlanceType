@@ -9,63 +9,43 @@
     <ImageView
         android:id="@+id/leftkeys_eyesfree"
         android:layout_width="647px"
-        android:layout_height="550px"
+        android:layout_height="566px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:src="@drawable/keys_left_eyesfree" />
 
     <ImageView
         android:id="@+id/rightkeys_eyesfree"
         android:layout_width="647px"
-        android:layout_height="550px"
+        android:layout_height="566px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:src="@drawable/keys_right_eyesfree" />
-    
-    <ImageView
-        android:id="@+id/leftkeys_eyesfocus"
-        android:layout_width="647px"
-        android:layout_height="666px"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:src="@drawable/keys_left_eyesfocus"
-        android:visibility="invisible" />
-    
-    <ImageView
-        android:id="@+id/rightkeys_eyesfocus"
-        android:visibility="invisible"
-        android:layout_width="647px"
-        android:layout_height="630px"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:src="@drawable/keys_right_eyesfocus" />
-    
+
     <ImageView
         android:id="@+id/addition_keyboard_left"
-        android:visibility="invisible"
         android:layout_width="586px"
         android:layout_height="600px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:src="@drawable/addition_keyboard_left" />
-    
+        android:src="@drawable/addition_keyboard_left"
+        android:visibility="invisible" />
+
     <ImageView
         android:id="@+id/addition_keyboard_right"
-        android:visibility="invisible"
         android:layout_width="586px"
         android:layout_height="600px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:src="@drawable/addition_keyboard_right" />
-    
+        android:src="@drawable/addition_keyboard_right"
+        android:visibility="invisible" />
+
     <Button
         android:id="@+id/startbutton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
         android:layout_marginLeft="28dp"
         android:text="start" />
 
@@ -95,20 +75,6 @@
         android:layout_alignLeft="@+id/startbutton"
         android:layout_below="@+id/startbutton"
         android:layout_marginTop="12dp" >
-
-        <RadioButton
-            android:id="@+id/eyes_free"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="eyes_free" />
-
-        <RadioButton
-            android:id="@+id/eyes_focus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="traditional" />
-
     </RadioGroup>
 
     <TextView
@@ -131,7 +97,7 @@
         android:text="candidate"
         android:textSize="15dp"
         android:typeface="monospace" />
-    
+
     <TextView
         android:id="@+id/candidateR"
         android:layout_width="wrap_content"
@@ -143,15 +109,6 @@
         android:textSize="15dp"
         android:typeface="monospace" />
 
-    <CheckBox
-        android:id="@+id/oov"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/candidate"
-        android:layout_alignLeft="@+id/technique"
-        android:layout_marginBottom="11dp"
-        android:text="OOV" />
-
     <TextView
         android:id="@+id/candidateL"
         android:layout_width="wrap_content"
@@ -162,31 +119,40 @@
         android:text="candidateL"
         android:textSize="15dp"
         android:typeface="monospace" />
-
+    
     <CheckBox
-        android:id="@+id/wyswyg"
+        android:id="@+id/oov"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/check"
-        android:layout_below="@+id/check"
-        android:text="WYSIWYG" />
-
-    <CheckBox
-        android:id="@+id/taponly"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/wyswyg"
-        android:layout_alignBottom="@+id/wyswyg"
-        android:layout_alignLeft="@+id/oov"
-        android:text="TapOnly" />
+        android:layout_alignLeft="@+id/wyswyg"
+        android:layout_alignTop="@+id/wyswyg"
+        android:layout_marginTop="30dp"
+        android:text="OOV" />
 
     <CheckBox
         android:id="@+id/check"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/oov"
-        android:layout_alignBottom="@+id/oov"
-        android:layout_toRightOf="@+id/technique"
+        android:layout_alignLeft="@+id/oov"
+        android:layout_alignTop="@+id/oov"
+        android:layout_marginTop="30dp"
         android:text="CheckLen" />
+    
+    <CheckBox
+        android:id="@+id/taponly"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/check"
+        android:layout_alignTop="@+id/check"
+        android:layout_marginTop="30dp"
+        android:text="TapOnly" />
+
+    <CheckBox
+        android:id="@+id/wyswyg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/technique"
+        android:layout_alignTop="@+id/technique"
+        android:text="WYSIWYG" />
 
 </RelativeLayout>

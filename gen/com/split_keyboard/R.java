@@ -25,36 +25,28 @@ public final class R {
         public static final int addition_keyboard_left=0x7f020000;
         public static final int addition_keyboard_right=0x7f020001;
         public static final int ic_launcher=0x7f020002;
-        public static final int keys_left_eyesfocus=0x7f020003;
-        public static final int keys_left_eyesfree=0x7f020004;
-        public static final int keys_left_eyesfree_raw=0x7f020005;
-        public static final int keys_right_eyesfocus=0x7f020006;
-        public static final int keys_right_eyesfree=0x7f020007;
-        public static final int keys_right_eyesfree_raw=0x7f020008;
+        public static final int keys_left_eyesfree=0x7f020003;
+        public static final int keys_right_eyesfree=0x7f020004;
     }
     public static final class id {
-        public static final int action_settings=0x7f090015;
-        public static final int addition_keyboard_left=0x7f090005;
-        public static final int addition_keyboard_right=0x7f090006;
-        public static final int candidate=0x7f09000e;
-        public static final int candidateL=0x7f090010;
-        public static final int candidateR=0x7f09000f;
-        public static final int check=0x7f090013;
-        public static final int eyes_focus=0x7f09000c;
-        public static final int eyes_free=0x7f09000b;
-        public static final int leftkeys_eyesfocus=0x7f090003;
+        public static final int action_settings=0x7f090011;
+        public static final int addition_keyboard_left=0x7f090003;
+        public static final int addition_keyboard_right=0x7f090004;
+        public static final int candidate=0x7f09000a;
+        public static final int candidateL=0x7f09000c;
+        public static final int candidateR=0x7f09000b;
+        public static final int check=0x7f09000f;
         public static final int leftkeys_eyesfree=0x7f090001;
         public static final int main_layout=0x7f090000;
-        public static final int oov=0x7f090011;
-        public static final int rightkeys_eyesfocus=0x7f090004;
+        public static final int oov=0x7f09000d;
         public static final int rightkeys_eyesfree=0x7f090002;
-        public static final int startbutton=0x7f090007;
-        public static final int state=0x7f090009;
-        public static final int stopbutton=0x7f090008;
-        public static final int taponly=0x7f090014;
-        public static final int technique=0x7f09000a;
-        public static final int text=0x7f09000d;
-        public static final int wyswyg=0x7f090012;
+        public static final int startbutton=0x7f090005;
+        public static final int state=0x7f090007;
+        public static final int stopbutton=0x7f090006;
+        public static final int taponly=0x7f090010;
+        public static final int technique=0x7f090008;
+        public static final int text=0x7f090009;
+        public static final int wyswyg=0x7f09000e;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
