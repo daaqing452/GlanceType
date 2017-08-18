@@ -49,6 +49,7 @@ public class MainActivity extends Activity {
 	boolean tap_only = false;
 	
 	final int MAX_SENTENCE = 40;
+	final int MAX_SENTENCE_OOV = 10;
 	int sentenceID = 0;
 	String sentence = "";
 	String inputted = "";
@@ -182,7 +183,6 @@ public class MainActivity extends Activity {
 		int len = 0;
 		for (int i = 0; i < wlist.size(); i++) {
 			len += wlist.get(i).length();
-			if (!oov_insert && i < wlist.size() - 1) len++;
 		}
 		return len;
 	}
@@ -200,6 +200,16 @@ public class MainActivity extends Activity {
 			j++;
 		}
 		return t;
+	}
+	
+	void removeLastSpace() {
+		if (wlist.size() <= 0) return;
+		String s = wlist.get(wlist.size() - 1);
+		char c = s.charAt(0);
+		if ((c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') && s.charAt(s.length() - 1) == ' ') {
+			wlist.remove(wlist.size() - 1);
+			wlist.add(s.substring(0, s.length() - 1));
+		}
 	}
 	
 	ArrayList<Word> getCandidates(BivariateGaussian[][] model) {
@@ -260,7 +270,6 @@ public class MainActivity extends Activity {
 				break;
 			}
 			text += s;
-			if (!oov_insert) text += " ";
 		}
 		if (plist.size() > 0) {
 			text += candidates.get(selected).str;
@@ -308,7 +317,12 @@ public class MainActivity extends Activity {
 		if (selected == -1) {
 			if (wysiwyg.length() > 0) {
 				log("select " + selected + " " + wysiwyg);
-				wlist.add(wysiwyg);
+				if (wysiwyg.equals(".") || wysiwyg.equals(",")) {
+					removeLastSpace();
+					wlist.add(wysiwyg);
+				} else {
+					wlist.add(wysiwyg + " ");
+				}
 				plist.clear();
 				wysiwyg = "";
 			}
@@ -316,7 +330,7 @@ public class MainActivity extends Activity {
 			if (plist.size() > 0) {
 				String selectedStr = candidates.get(selected).str;
 				log("select " + selected + " " + selectedStr);
-				wlist.add(selectedStr);
+				wlist.add(selectedStr + " ");
 				plist.clear();
 				wysiwyg = "";
 			}
@@ -328,25 +342,11 @@ public class MainActivity extends Activity {
 		sentence = sentences.get(random.nextInt(sentences.size()));
 		sentenceColored = sentence;
 		if (oov_insert) {
-			/*String[] arr = sentence.split(" ");
-			sentence = sentenceColored = "";
-			String oov = dict_oov.get(random.nextInt(dict_oov.size())).str;
-			int oov_index = random.nextInt(arr.length + 1);
-			for (int i = 0; i < oov_index; i++) {
-				sentence += arr[i] + " ";
-				sentenceColored += arr[i] + " ";
-			}
-			sentence += oov;
-			sentenceColored += "<font color='#ff0000'>" + oov + "</font>";
-			for (int i = oov_index; i < arr.length; i++) {
-				sentence += " " + arr[i];
-				sentenceColored += " " + arr[i];
-			}*/
-			if (sentenceID > oov_sentences.size()) {
+			if (sentenceID > MAX_SENTENCE_OOV) {
 				stopButton.performClick();
 				return;
 			}
-			sentence = oov_sentences.get(sentenceID - 1);
+			sentence = oov_sentences.get((sentenceID % 3) * 50 + random.nextInt(50));
 			sentenceColored = sentence;
 		}
 		log("sentence " + sentence);
@@ -363,7 +363,7 @@ public class MainActivity extends Activity {
 		wlist.clear();
 	}
 	
-	void click(int x, int y, boolean rub) {
+	void click(int x, int y, boolean dwell) {
 		//Log.d("xy", x + " " + y);
 		double bestDist = 1e20;
 		int best = -1;
@@ -385,11 +385,14 @@ public class MainActivity extends Activity {
 			case 39:
 				break;
 			default:
-				wlist.add("" + charAddition.charAt(best));
+				log("additionclick " + best);
+				char c = charAddition.charAt(best);
+				if (c == '.' || c == ',' || c == '?' || c == '!' || c == ':' || c == ';') removeLastSpace();
+				wlist.add("" + c);
 				break;
 			}
 		} else {
-			if (y < 1120) {
+			if (y < 1140) {
 				if (show_wysiwyg) {
 					log("tap");
 					confirmSelection(null, -1);
@@ -402,8 +405,8 @@ public class MainActivity extends Activity {
 					}
 				}
 			} else {
-				log("click " + x + " " + y);
-				plist.add(new Point(x, y, rub));
+				log("click " + x + " " + y + " " + dwell);
+				plist.add(new Point(x, y, dwell));
 				switch (best) {
 				case 26:
 					wysiwyg += ',';
@@ -425,13 +428,13 @@ public class MainActivity extends Activity {
 	
 	void swipeLeft() {
 		if (plist.size() > 0) {
-			log("swipeleft");
+			log("swipeleft eraseletter");
 			plist.remove(plist.size() - 1);
 			wysiwyg = wysiwyg.substring(0, wysiwyg.length() - 1);
 			renewCandidate();
 			renewCandidateLR();
 		} else if (wlist.size() > 0) {
-			log("swipeleft");
+			log("swipeleft eraseword");
 			wlist.remove(wlist.size() - 1);
 		}
 		renewText();
@@ -439,14 +442,17 @@ public class MainActivity extends Activity {
 	
 	void swipeDown() {
 		if (addition_keyboard) {
+			log("changekeyboard normal");
 			addition_keyboard = false;
 			onChangeKeyboard();
 		} else {
-			log("swipedown");
-			plist.clear();
-			wysiwyg = "";
-			renewCandidate();
-			renewCandidateLR();
+			if (plist.size() > 0) {
+				log("swipedown eraseallletter");
+				plist.clear();
+				wysiwyg = "";
+				renewCandidate();
+				renewCandidateLR();
+			}
 			renewText();
 		}
 	}
@@ -454,14 +460,15 @@ public class MainActivity extends Activity {
 	void swipeRight() {
 		if (plist.size() == 0) {
 			if (oov_insert) {
-				if (getWlistLength() == sentence.length()) {
+				if (Math.abs(getWlistLength() - sentence.length()) <= 1) {
 					log("nextsentence");
 					nextSentence();
 				} else {
+					log("space");
 					wlist.add(" ");
 				}
 			} else {
-				if (!check || getWlistLength() == sentence.length()) {
+				if (!check || getWlistLength() - 1 == sentence.length()) {
 					log("nextsentence");
 					nextSentence();
 				}
@@ -479,6 +486,7 @@ public class MainActivity extends Activity {
 
 	void swipeUp() {
 		if (plist.size() == 0) {
+			log("changekeyboard " + (addition_keyboard ? "normal" : "addition"));
 			addition_keyboard = !addition_keyboard;
 			onChangeKeyboard();
 		}
@@ -522,8 +530,8 @@ public class MainActivity extends Activity {
 		switch (event.getActionMasked()){
 		case MotionEvent.ACTION_DOWN:
 		case MotionEvent.ACTION_POINTER_DOWN:
-			log("down");
-			touchEvent[pointerID] = new TouchEvent(x, y);
+			log("down " + x + " " + y);
+			touchEvent[pointerID] = new TouchEvent(this, x, y);
 			break;
 			
 		case MotionEvent.ACTION_MOVE:
@@ -540,14 +548,14 @@ public class MainActivity extends Activity {
 			
 		case MotionEvent.ACTION_UP:
 		case MotionEvent.ACTION_POINTER_UP:
-			log("up");
+			log("up " + x + " " + y);
 			TouchEvent q = touchEvent[pointerID];
 			int op = q.up(x, y);
 			switch (op) {
 			case TouchEvent.EVENT_CLICK:
 				click((q.x + q.downX) / 2, (q.y + q.downY) / 2, false);
 				break;
-			case TouchEvent.EVENT_RUB:
+			case TouchEvent.EVENT_DWELL:
 				click((q.x + q.downX) / 2, (q.y + q.downY) / 2, true);
 				break;
 			case TouchEvent.EVENT_SWIPE_LEFT:
@@ -578,7 +586,7 @@ public class MainActivity extends Activity {
 	
 	final int DICT = R.raw.dict;
 	final int MAX_WORD_LENGTH = 99;
-	final int DICT_SIZE = (DICT == R.raw.dict) ? 10003 : 50000;
+	final int DICT_SIZE = (DICT == R.raw.dict) ? 10010 : 50000;
 	//final int OOV_SIZE = 1000;
 	ArrayList<String> sentences = new ArrayList<String>();
 	ArrayList<Word>[] dict = new ArrayList[MAX_WORD_LENGTH];
@@ -655,15 +663,15 @@ public class MainActivity extends Activity {
 			Log.d("error", "read model");
 		}
 		
-		reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.chat)));
+		reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.real)));
 		try {
 			while ((line = reader.readLine()) != null) {
-				oov_sentences.add(line.toLowerCase());
+				oov_sentences.add(line);
 			}
 			reader.close();
-			Log.d("load", "finish read sentences");
+			Log.d("load", "finish read oov sentences");
 		} catch (Exception e) {
-			Log.d("error", "read sentences");
+			Log.d("error", "read oov sentences");
 		}
 	}
 	

@@ -127,7 +127,7 @@
         android:layout_alignLeft="@+id/wyswyg"
         android:layout_alignTop="@+id/wyswyg"
         android:layout_marginTop="30dp"
-        android:text="OOV" />
+        android:text="OOV Mode" />
 
     <CheckBox
         android:id="@+id/check"
@@ -136,7 +136,7 @@
         android:layout_alignLeft="@+id/oov"
         android:layout_alignTop="@+id/oov"
         android:layout_marginTop="30dp"
-        android:text="CheckLen" />
+        android:text="Check Length" />
     
     <CheckBox
         android:id="@+id/taponly"
@@ -145,7 +145,7 @@
         android:layout_alignLeft="@+id/check"
         android:layout_alignTop="@+id/check"
         android:layout_marginTop="30dp"
-        android:text="TapOnly" />
+        android:text="Tap Only" />
 
     <CheckBox
         android:id="@+id/wyswyg"
@@ -153,6 +153,6 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/technique"
         android:layout_alignTop="@+id/technique"
-        android:text="WYSIWYG" />
+        android:text="WYSIWYG Mode" />
 
 </RelativeLayout>
