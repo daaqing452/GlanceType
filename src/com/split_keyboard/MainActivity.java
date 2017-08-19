@@ -452,6 +452,14 @@ public class MainActivity extends Activity {
 				wysiwyg = "";
 				renewCandidate();
 				renewCandidateLR();
+			} else {
+				if (oov_insert && wlist.size() > 0) {
+					log("swipeleft eraseletter");
+					String s = wlist.get(wlist.size() - 1);
+					wlist.remove(wlist.size() - 1);
+					s = s.substring(0, s.length() - 1);
+					if (s.length() > 0) wlist.add(s);
+				}
 			}
 			renewText();
 		}
@@ -460,7 +468,7 @@ public class MainActivity extends Activity {
 	void swipeRight() {
 		if (plist.size() == 0) {
 			if (oov_insert) {
-				if (Math.abs(getWlistLength() - sentence.length()) <= 1) {
+				if (Math.abs(getWlistLength() - sentence.length()) <= 3) {
 					log("nextsentence");
 					nextSentence();
 				} else {
