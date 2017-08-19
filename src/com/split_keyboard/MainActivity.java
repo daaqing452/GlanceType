@@ -434,8 +434,13 @@ public class MainActivity extends Activity {
 			renewCandidate();
 			renewCandidateLR();
 		} else if (wlist.size() > 0) {
-			log("swipeleft eraseword");
-			wlist.remove(wlist.size() - 1);
+			if (oov_insert) {
+				log("swipeleft eraseletter");
+				String s = wlist.get(wlist.size() - 1);
+				wlist.remove(wlist.size() - 1);
+				s = s.substring(0, s.length() - 1);
+				if (s.length() > 0) wlist.add(s);
+			}
 		}
 		renewText();
 	}
@@ -453,12 +458,9 @@ public class MainActivity extends Activity {
 				renewCandidate();
 				renewCandidateLR();
 			} else {
-				if (oov_insert && wlist.size() > 0) {
-					log("swipeleft eraseletter");
-					String s = wlist.get(wlist.size() - 1);
+				if (wlist.size() > 0) {
+					log("swipeleft eraseword");
 					wlist.remove(wlist.size() - 1);
-					s = s.substring(0, s.length() - 1);
-					if (s.length() > 0) wlist.add(s);
 				}
 			}
 			renewText();
