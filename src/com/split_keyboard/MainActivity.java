@@ -440,6 +440,9 @@ public class MainActivity extends Activity {
 				wlist.remove(wlist.size() - 1);
 				s = s.substring(0, s.length() - 1);
 				if (s.length() > 0) wlist.add(s);
+			} else {
+				log("swipeleft eraseword");
+				wlist.remove(wlist.size() - 1);
 			}
 		}
 		renewText();
@@ -458,8 +461,8 @@ public class MainActivity extends Activity {
 				renewCandidate();
 				renewCandidateLR();
 			} else {
-				if (wlist.size() > 0) {
-					log("swipeleft eraseword");
+				if (oov_insert && wlist.size() > 0) {
+					log("swipedown eraseword");
 					wlist.remove(wlist.size() - 1);
 				}
 			}
