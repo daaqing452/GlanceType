@@ -12,7 +12,7 @@
         android:layout_height="566px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:src="@drawable/keys_left_eyesfree" />
+        android:src="@drawable/keys_peripheral_left" />
 
     <ImageView
         android:id="@+id/rightkeys_eyesfree"
@@ -20,7 +20,7 @@
         android:layout_height="566px"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:src="@drawable/keys_right_eyesfree" />
+        android:src="@drawable/keys_peripheral_right" />
 
     <ImageView
         android:id="@+id/addition_keyboard_left"
@@ -119,40 +119,51 @@
         android:text="candidateL"
         android:textSize="15dp"
         android:typeface="monospace" />
-    
-    <CheckBox
-        android:id="@+id/oov"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/wyswyg"
-        android:layout_alignTop="@+id/wyswyg"
-        android:layout_marginTop="30dp"
-        android:text="OOV Mode" />
 
     <CheckBox
-        android:id="@+id/check"
+        android:id="@+id/gesture_disabled"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/oov"
-        android:layout_alignTop="@+id/oov"
+        android:layout_alignLeft="@+id/length_check"
+        android:layout_alignTop="@+id/length_check"
         android:layout_marginTop="30dp"
-        android:text="Check Length" />
-    
-    <CheckBox
-        android:id="@+id/taponly"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/check"
-        android:layout_alignTop="@+id/check"
-        android:layout_marginTop="30dp"
-        android:text="Tap Only" />
+        android:text="Gesture Disabled" />
 
-    <CheckBox
-        android:id="@+id/wyswyg"
+    <RadioGroup
+        android:id="@+id/mode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/technique"
-        android:layout_alignTop="@+id/technique"
-        android:text="WYSIWYG Mode" />
+        android:layout_alignTop="@+id/technique" >
+
+        <RadioButton
+            android:id="@+id/peripheral"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Peripheral" />
+
+        <RadioButton
+            android:id="@+id/eyes_on"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Eyes-On" />
+    </RadioGroup>
+
+    <CheckBox
+        android:id="@+id/length_check"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/oov_corpus"
+        android:layout_below="@+id/oov_corpus"
+        android:text="Length Check" />
+
+    <CheckBox
+        android:id="@+id/oov_corpus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/candidate"
+        android:layout_alignLeft="@+id/mode"
+        android:text="OOV Corpus" />
 
 </RelativeLayout>

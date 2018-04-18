@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
 
-import com.split_keyboard.R;
+import com.glancetype.R;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -39,14 +39,15 @@ public class MainActivity extends Activity {
 	Button startButton, stopButton;
 	TextView stateView, textView, candidateView, candidateViewL, candidateViewR;
 	ImageView leftEyesfree, rightEyesfree, leftAddition, rightAddition;
-	CheckBox oovCheck, checkCheck, wysiwygCheck, tapOnlyCheck;
+	CheckBox oovCorpusCheckbox, lengthCheckCheckbox, gestureDisabledCheckbox;
+	RadioGroup modeRadioGroup;
 	
+	String mode = "peripheral";
 	boolean started = false;
 	boolean addition_keyboard = false;
-	boolean oov_insert = false;
-	boolean check = false;
-	boolean show_wysiwyg = false;
-	boolean tap_only = false;
+	boolean oov_corpus = false;
+	boolean length_check = false;
+	boolean gesture_disabled = false;
 	
 	final int MAX_SENTENCE = 40;
 	final int MAX_SENTENCE_OOV = 10;
@@ -86,10 +87,10 @@ public class MainActivity extends Activity {
 				renewCandidate();
 				renewCandidateLR();
 				renewText();
-				oovCheck.setClickable(false);
-				checkCheck.setClickable(false);
-				wysiwygCheck.setClickable(false);
-				tapOnlyCheck.setClickable(false);
+				for (int i = 0; i < modeRadioGroup.getChildCount(); i++) modeRadioGroup.getChildAt(i).setClickable(false);
+				oovCorpusCheckbox.setClickable(false);
+				lengthCheckCheckbox.setClickable(false);
+				gestureDisabledCheckbox.setClickable(false);
 			}
 		});
 		stopButton.setOnClickListener(new OnClickListener(){
@@ -107,45 +108,54 @@ public class MainActivity extends Activity {
 				renewCandidate();
 				renewText();
 				logStop();
-				oovCheck.setClickable(true);
-				checkCheck.setClickable(true);
-				wysiwygCheck.setClickable(true);
-				tapOnlyCheck.setClickable(true);
+				for (int i = 0; i < modeRadioGroup.getChildCount(); i++) modeRadioGroup.getChildAt(i).setClickable(true);
+				oovCorpusCheckbox.setClickable(true);
+				lengthCheckCheckbox.setClickable(true);
+				gestureDisabledCheckbox.setClickable(true);
 			}
 		});
 		
-		oovCheck = (CheckBox)findViewById(R.id.oov);
-		oovCheck.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+		modeRadioGroup = (RadioGroup)findViewById(R.id.mode);
+		modeRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(RadioGroup radioGroup, int arg1) {
+				switch (radioGroup.getCheckedRadioButtonId()) {
+				case R.id.peripheral:
+					mode = "peripheral";
+					break;
+				case R.id.eyes_on:
+					mode = "eyes-on";
+					break;
+				default:
+					mode = "error";
+					break;
+				}
+			}
+		});
+		
+		oovCorpusCheckbox = (CheckBox)findViewById(R.id.oov_corpus);
+		oovCorpusCheckbox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if (started == true) return;
-				oov_insert = isChecked;
+				oov_corpus = isChecked;
 			}
 		});
 
-		checkCheck = (CheckBox)findViewById(R.id.check);
-		checkCheck.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+		lengthCheckCheckbox = (CheckBox)findViewById(R.id.length_check);
+		lengthCheckCheckbox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if (started == true) return;
-				check = isChecked;
+				length_check = isChecked;
 			}
 		});
 		
-		wysiwygCheck = (CheckBox)findViewById(R.id.wyswyg);
-		wysiwygCheck.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+		gestureDisabledCheckbox = (CheckBox)findViewById(R.id.gesture_disabled);
+		gestureDisabledCheckbox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (started == true) return;
-				show_wysiwyg = isChecked;
-			}
-		});
-		
-		tapOnlyCheck = (CheckBox)findViewById(R.id.taponly);
-		tapOnlyCheck.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				tap_only = isChecked;
+				gesture_disabled = isChecked;
 			}
 		});
 		
@@ -279,22 +289,26 @@ public class MainActivity extends Activity {
 	}
 	
 	void renewCandidate() {
-		candidates = getCandidates(modelEyesfree);
-		String text = "";
-		for (int i = 0; i < candidates.size(); i++) {
-			if (i == selected) text += "<font color='#ff0000'>";
-			text += candidates.get(i).str + "  ";
-			if (i == selected) text += "</font>";
+		if (mode == "peripheral") {
+			candidates = getCandidates(modelEyesfree);
+			String text = "";
+			for (int i = 0; i < candidates.size(); i++) {
+				if (i == selected) text += "<font color='#ff0000'>";
+				text += candidates.get(i).str + "  ";
+				if (i == selected) text += "</font>";
+			}
+			candidateView.setText(Html.fromHtml(text));
+			int len = getWlistLength();
+			if (wlist.size() > 0 && !oov_corpus) len++;
+			candidateView.setX(650 + len * 30);
+		} else {
+			candidateView.setText("");
 		}
-		candidateView.setText(Html.fromHtml(text));
-		int len = getWlistLength();
-		if (wlist.size() > 0 && !oov_insert) len++;
-		candidateView.setX(650 + len * 30);
 	}
 
 	void renewCandidateLR() {
 		String sL = "", sR = "";
-		if (show_wysiwyg) {
+		if (mode == "peripheral") {
 			sL += wysiwyg;
 			sR += wysiwyg;
 		} else {
@@ -307,10 +321,9 @@ public class MainActivity extends Activity {
 				sR = "&nbsp;" + candidatesLR.get(i).str + sR;
 				for (int j = 0; j < Math.max(0, CANDIDATE_LR_SPAN - plist.size()); j++) sR = "&nbsp;" + sR;
 			}
-			Log.d("sr", sR);
 		}
-		candidateViewL.setText(Html.fromHtml("<font color='#e7e8e9'>" + sL + "</font>"));
-		candidateViewR.setText(Html.fromHtml("<font color='#e7e8e9'>" + sR + "</font>"));
+		candidateViewL.setText(Html.fromHtml("<font color='#dddddd'>" + sL + "</font>"));
+		candidateViewR.setText(Html.fromHtml("<font color='#dddddd'>" + sR + "</font>"));
 	}
 	
 	void confirmSelection(ArrayList<Word> candidates, int selected) {
@@ -341,7 +354,7 @@ public class MainActivity extends Activity {
 	void generateSentence() {
 		sentence = sentences.get(random.nextInt(sentences.size()));
 		sentenceColored = sentence;
-		if (oov_insert) {
+		if (oov_corpus) {
 			if (sentenceID > MAX_SENTENCE_OOV) {
 				stopButton.performClick();
 				return;
@@ -393,7 +406,7 @@ public class MainActivity extends Activity {
 			}
 		} else {
 			if (y < 1140) {
-				if (show_wysiwyg) {
+				if (mode == "peripheral") {
 					log("tap");
 					confirmSelection(null, -1);
 				} else {
@@ -434,7 +447,7 @@ public class MainActivity extends Activity {
 			renewCandidate();
 			renewCandidateLR();
 		} else if (wlist.size() > 0) {
-			if (oov_insert) {
+			if (oov_corpus) {
 				log("swipeleft eraseletter");
 				String s = wlist.get(wlist.size() - 1);
 				wlist.remove(wlist.size() - 1);
@@ -461,7 +474,7 @@ public class MainActivity extends Activity {
 				renewCandidate();
 				renewCandidateLR();
 			} else {
-				if (oov_insert && wlist.size() > 0) {
+				if (oov_corpus && wlist.size() > 0) {
 					log("swipedown eraseword");
 					wlist.remove(wlist.size() - 1);
 				}
@@ -472,7 +485,7 @@ public class MainActivity extends Activity {
 	
 	void swipeRight() {
 		if (plist.size() == 0) {
-			if (oov_insert) {
+			if (oov_corpus) {
 				if (Math.abs(getWlistLength() - sentence.length()) <= 3) {
 					log("nextsentence");
 					nextSentence();
@@ -481,13 +494,13 @@ public class MainActivity extends Activity {
 					wlist.add(" ");
 				}
 			} else {
-				if (!check || getWlistLength() - 1 == sentence.length()) {
+				if (!length_check || getWlistLength() - 1 == sentence.length()) {
 					log("nextsentence");
 					nextSentence();
 				}
 			}
 		} else {
-			if (!tap_only) {
+			if (!gesture_disabled) {
 				log("swiperight");
 				confirmSelection(candidates, 0);
 				renewCandidate();
@@ -506,7 +519,7 @@ public class MainActivity extends Activity {
 	}
 	
 	void drag(int x, int y, int downX, int downY) {
-		if (tap_only) return;
+		if (gesture_disabled) return;
 		double span = (2550 - downX) / 5.0;
 		span = Math.min(span, 50);
 		double q = (x - 20 - downX) / span;
@@ -517,7 +530,7 @@ public class MainActivity extends Activity {
 	}
 	
 	void dragFinish() {
-		if (tap_only) return;
+		if (gesture_disabled) return;
 		log("drag");
 		confirmSelection(candidates, selected);
 		renewCandidate();
