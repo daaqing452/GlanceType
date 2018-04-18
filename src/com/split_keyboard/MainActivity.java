@@ -37,8 +37,8 @@ public class MainActivity extends Activity {
 	Random random = new Random();
 			
 	Button startButton, stopButton;
-	TextView stateView, textView, candidateView, candidateViewL, candidateViewR;
-	ImageView leftEyesfree, rightEyesfree, leftAddition, rightAddition;
+	TextView stateView, textView, candidateViewU, candidateViewL, candidateViewR;
+	ImageView leftPeripheral, rightPeripheral, leftAddition, rightAddition;
 	CheckBox oovCorpusCheckbox, lengthCheckCheckbox, gestureDisabledCheckbox;
 	RadioGroup modeRadioGroup;
 	
@@ -62,11 +62,11 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		
 		textView = (TextView)findViewById(R.id.text);
-		candidateView = (TextView)findViewById(R.id.candidate);
+		candidateViewU = (TextView)findViewById(R.id.candidateU);
 		candidateViewL = (TextView)findViewById(R.id.candidateL);
 		candidateViewR = (TextView)findViewById(R.id.candidateR);
-		leftEyesfree = (ImageView)findViewById(R.id.leftkeys_eyesfree);
-		rightEyesfree = (ImageView)findViewById(R.id.rightkeys_eyesfree);
+		leftPeripheral = (ImageView)findViewById(R.id.leftkeys_peripheral);
+		rightPeripheral = (ImageView)findViewById(R.id.rightkeys_peripheral);
 		leftAddition = (ImageView)findViewById(R.id.addition_keyboard_left);
 		rightAddition = (ImageView)findViewById(R.id.addition_keyboard_right);
 
@@ -85,7 +85,6 @@ public class MainActivity extends Activity {
 				logStart();
 				generateSentence();
 				renewCandidate();
-				renewCandidateLR();
 				renewText();
 				for (int i = 0; i < modeRadioGroup.getChildCount(); i++) modeRadioGroup.getChildAt(i).setClickable(false);
 				oovCorpusCheckbox.setClickable(false);
@@ -168,11 +167,11 @@ public class MainActivity extends Activity {
 		if (addition_keyboard) {
 			leftAddition.setVisibility(View.VISIBLE);
 			rightAddition.setVisibility(View.VISIBLE);
-			leftEyesfree.setVisibility(View.INVISIBLE);
-			rightEyesfree.setVisibility(View.INVISIBLE);
+			leftPeripheral.setVisibility(View.INVISIBLE);
+			rightPeripheral.setVisibility(View.INVISIBLE);
 		} else {
-			leftEyesfree.setVisibility(View.VISIBLE);
-			rightEyesfree.setVisibility(View.VISIBLE);
+			leftPeripheral.setVisibility(View.VISIBLE);
+			rightPeripheral.setVisibility(View.VISIBLE);
 			leftAddition.setVisibility(View.INVISIBLE);
 			rightAddition.setVisibility(View.INVISIBLE);
 		}
@@ -185,7 +184,6 @@ public class MainActivity extends Activity {
 	ArrayList<String> wlist = new ArrayList<String>();
 	ArrayList<Point> plist = new ArrayList<Point>();
 	ArrayList<Word> candidates = new ArrayList<Word>();
-	ArrayList<Word> candidatesLR = new ArrayList<Word>();
 	int selected = 0;
 	String wysiwyg = "";
 	
@@ -289,36 +287,41 @@ public class MainActivity extends Activity {
 	}
 	
 	void renewCandidate() {
+		String sL = "", sR = "";
 		if (mode == "peripheral") {
-			candidates = getCandidates(modelEyesfree);
+			candidates = getCandidates(modelPeripheral);
 			String text = "";
 			for (int i = 0; i < candidates.size(); i++) {
 				if (i == selected) text += "<font color='#ff0000'>";
 				text += candidates.get(i).str + "  ";
 				if (i == selected) text += "</font>";
 			}
-			candidateView.setText(Html.fromHtml(text));
+			candidateViewU.setText(Html.fromHtml(text));
 			int len = getWlistLength();
 			if (wlist.size() > 0 && !oov_corpus) len++;
-			candidateView.setX(650 + len * 30);
-		} else {
-			candidateView.setText("");
-		}
-	}
-
-	void renewCandidateLR() {
-		String sL = "", sR = "";
-		if (mode == "peripheral") {
+			candidateViewU.setX(650 + len * 30);
 			sL += wysiwyg;
 			sR += wysiwyg;
 		} else {
-			candidatesLR = getCandidates(modelEyesfocus);
-			for (int i = 0; i < candidatesLR.size(); i++) {
-				sL += candidatesLR.get(i).str + "&nbsp;";
+			candidates = getCandidates(modelEyesOn);
+			candidateViewU.setText("");
+			if (oov_corpus) {
+				for (int i = 0; i < candidates.size(); i++) {
+					if (candidates.get(i).str.equals(wysiwyg)) {
+						candidates.remove(i);
+						candidates.add(new Word("", 0));
+						break;
+					}
+				}
+				candidates.add(0, new Word(wysiwyg, 0));
+				candidates.remove(candidates.size() - 1);
+			}
+			for (int i = 0; i < candidates.size(); i++) {
+				sL += candidates.get(i).str + "&nbsp;";
 				for (int j = 0; j < Math.max(0, CANDIDATE_LR_SPAN - plist.size()); j++) sL += "&nbsp;";
 			}
-			for (int i = 0; i < candidatesLR.size(); i++) {
-				sR = "&nbsp;" + candidatesLR.get(i).str + sR;
+			for (int i = 0; i < candidates.size(); i++) {
+				sR = "&nbsp;" + candidates.get(i).str + sR;
 				for (int j = 0; j < Math.max(0, CANDIDATE_LR_SPAN - plist.size()); j++) sR = "&nbsp;" + sR;
 			}
 		}
@@ -380,7 +383,7 @@ public class MainActivity extends Activity {
 		//Log.d("xy", x + " " + y);
 		double bestDist = 1e20;
 		int best = -1;
-		Point[] pos = addition_keyboard ? posAddition : posEyesfree;
+		Point[] pos = addition_keyboard ? posAddition : posPeripheral;
 		for (int i = 0; i < pos.length; i++) {
 			double dist = Math.pow(x - pos[i].x, 2) + Math.pow(y - pos[i].y, 2);
 			if (bestDist > dist) {
@@ -412,9 +415,9 @@ public class MainActivity extends Activity {
 				} else {
 					int span = (x < 1280) ? x : (2560 - x);
 					int q = span / (Math.max(plist.size(), CANDIDATE_LR_SPAN) + 1) / 18;
-					if (q >= 0 && q < candidatesLR.size()) {
+					if (q >= 0 && q < candidates.size()) {
 						log("tap " + q + " " + (x < 1280 ? "L" : "R"));
-						confirmSelection(candidatesLR, q);
+						confirmSelection(candidates, q);
 					}
 				}
 			} else {
@@ -435,7 +438,6 @@ public class MainActivity extends Activity {
 		}
 
 		renewCandidate();
-		renewCandidateLR();
 		renewText();
 	}
 	
@@ -445,7 +447,6 @@ public class MainActivity extends Activity {
 			plist.remove(plist.size() - 1);
 			wysiwyg = wysiwyg.substring(0, wysiwyg.length() - 1);
 			renewCandidate();
-			renewCandidateLR();
 		} else if (wlist.size() > 0) {
 			if (oov_corpus) {
 				log("swipeleft eraseletter");
@@ -472,7 +473,6 @@ public class MainActivity extends Activity {
 				plist.clear();
 				wysiwyg = "";
 				renewCandidate();
-				renewCandidateLR();
 			} else {
 				if (oov_corpus && wlist.size() > 0) {
 					log("swipedown eraseword");
@@ -504,7 +504,6 @@ public class MainActivity extends Activity {
 				log("swiperight");
 				confirmSelection(candidates, 0);
 				renewCandidate();
-				renewCandidateLR();
 			}
 		}
 		renewText();
@@ -534,7 +533,6 @@ public class MainActivity extends Activity {
 		log("drag");
 		confirmSelection(candidates, selected);
 		renewCandidate();
-		renewCandidateLR();
 		renewText();
 	}
 	
@@ -618,8 +616,8 @@ public class MainActivity extends Activity {
 	ArrayList<Word>[] dict = new ArrayList[MAX_WORD_LENGTH];
 	//ArrayList<Word> dict_oov = new ArrayList<Word>();
 	ArrayList<String> oov_sentences = new ArrayList<String>();
-	BivariateGaussian[][] modelEyesfree = new BivariateGaussian[2][26];
-	BivariateGaussian[][] modelEyesfocus = new BivariateGaussian[2][26];
+	BivariateGaussian[][] modelPeripheral = new BivariateGaussian[2][26];
+	BivariateGaussian[][] modelEyesOn = new BivariateGaussian[2][26];
 	
 	PrintWriter logger;
 	
@@ -678,9 +676,9 @@ public class MainActivity extends Activity {
 				int hand = Integer.parseInt(arr[1]);
 				int index = Integer.parseInt(arr[2]);
 				if (mode == 2) {
-					modelEyesfocus[hand][index] = new BivariateGaussian(Double.parseDouble(arr[3]), Double.parseDouble(arr[4]), Double.parseDouble(arr[5]), Double.parseDouble(arr[6]));
+					modelEyesOn[hand][index] = new BivariateGaussian(Double.parseDouble(arr[3]), Double.parseDouble(arr[4]), Double.parseDouble(arr[5]), Double.parseDouble(arr[6]));
 				} else if (mode == 1) {
-					modelEyesfree[hand][index] = new BivariateGaussian(Double.parseDouble(arr[3]), Double.parseDouble(arr[4]), Double.parseDouble(arr[5]), Double.parseDouble(arr[6]));
+					modelPeripheral[hand][index] = new BivariateGaussian(Double.parseDouble(arr[3]), Double.parseDouble(arr[4]), Double.parseDouble(arr[5]), Double.parseDouble(arr[6]));
 				}
 			}
 			reader.close();
@@ -727,8 +725,9 @@ public class MainActivity extends Activity {
 	}
 
 	
-	
-	Point[] posEyesfree = new Point[28];
+
+	Point[] posPeripheral = new Point[26];
+	//Point[] posPeripheral = new Point[28];
 	Point[] posAddition = new Point[50];
 	String charAddition = "12345!@*_?+-/\\#~():;'\"   67890^&$% |<>  `{}[],.¡Á¡Â=";
 	
@@ -750,17 +749,17 @@ public class MainActivity extends Activity {
 		for (int y = 0; y < 3; y++) {
 			for (int x = 0; x < gap[y]; x++) {
 				int index = keyboard[y].charAt(x) - 'a';
-				posEyesfree[index] = new Point(LX[y] + x * X, Y0 + y * Y);
+				posPeripheral[index] = new Point(LX[y] + x * X, Y0 + y * Y);
 			}
 			for (int x = gap[y]; x < keyboard[y].length(); x++) {
 				int index = keyboard[y].charAt(x) - 'a';
-				posEyesfree[index] = new Point(RX[y] + x * X, Y0 + y * Y);
+				posPeripheral[index] = new Point(RX[y] + x * X, Y0 + y * Y);
 			}
 		}
 		
 		// , and .
-		posEyesfree[26] = new Point(RX[2] + 7 * X, Y0 + 2 * Y);
-		posEyesfree[27] = new Point(RX[2] + 8 * X, Y0 + 2 * Y);
+		//posPeripheral[26] = new Point(RX[2] + 7 * X, Y0 + 2 * Y);
+		//posPeripheral[27] = new Point(RX[2] + 8 * X, Y0 + 2 * Y);
 	}
 	
 	void centroid_addition() {

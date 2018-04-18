@@ -7,7 +7,7 @@
     tools:context="com.split_keyboard.MainActivity" >
 
     <ImageView
-        android:id="@+id/leftkeys_eyesfree"
+        android:id="@+id/leftkeys_peripheral"
         android:layout_width="647px"
         android:layout_height="566px"
         android:layout_alignParentBottom="true"
@@ -15,7 +15,7 @@
         android:src="@drawable/keys_peripheral_left" />
 
     <ImageView
-        android:id="@+id/rightkeys_eyesfree"
+        android:id="@+id/rightkeys_peripheral"
         android:layout_width="647px"
         android:layout_height="566px"
         android:layout_alignParentBottom="true"
@@ -82,13 +82,13 @@
         android:layout_width="fill_parent"
         android:layout_height="150dp"
         android:layout_alignTop="@+id/stopbutton"
-        android:layout_toRightOf="@+id/leftkeys_eyesfree"
+        android:layout_toRightOf="@+id/leftkeys_peripheral"
         android:text="text"
         android:textSize="25dp"
         android:typeface="monospace" />
 
     <TextView
-        android:id="@+id/candidate"
+        android:id="@+id/candidateU"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/text"
@@ -114,7 +114,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignTop="@+id/leftkeys_eyesfree"
+        android:layout_alignTop="@+id/leftkeys_peripheral"
         android:layout_marginTop="11dp"
         android:text="candidateL"
         android:textSize="15dp"
@@ -162,7 +162,7 @@
         android:id="@+id/oov_corpus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/candidate"
+        android:layout_alignBottom="@+id/candidateU"
         android:layout_alignLeft="@+id/mode"
         android:text="OOV Corpus" />
 
